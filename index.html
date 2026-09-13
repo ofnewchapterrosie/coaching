@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#101318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plan">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>ECHELON Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#101318; --surface:#171B22; --surface2:#1F242E; --line:#2A3140;
+  --text:#E8ECF2; --muted:#8A94A6; --amber:#FFB020; --green:#34D07C; --blue:#5B9DFF;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Archivo',system-ui,sans-serif;height:100%}
+body{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.mono{font-family:'JetBrains Mono',monospace}
+input,select{font-family:inherit;font-size:15px;background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px 11px;width:100%}
+button{font-family:inherit;cursor:pointer}
+
+header{position:sticky;top:0;z-index:20;background:rgba(16,19,24,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.hd{display:flex;align-items:center;gap:12px;height:54px;padding:0 16px}
+.wordmark{font-weight:900;letter-spacing:.12em;font-size:15px}
+.wordmark span{color:var(--amber)}
+.wordmark small{display:block;font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--muted);margin-top:-1px}
+.icon-btn{margin-left:auto;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;width:32px;height:32px;font-size:14px}
+
+.wrap{max-width:640px;margin:0 auto;padding:14px 14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.card h3{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;display:flex;align-items:center;gap:8px}
+.card h3 .right{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;font-size:11px}
+
+.race-hero{background:linear-gradient(135deg,#1a1408 0%,var(--surface) 60%);border-color:rgba(255,176,32,.3)}
+.race-hero .big{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;color:var(--amber);line-height:1}
+.race-hero .lbl{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.race-hero .title{font-weight:900;font-size:15px;margin-top:6px}
+.race-hero .date{color:var(--muted);font-size:12px}
+
+.wknav{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.wknav button{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:8px;width:34px;height:34px;font-size:16px;font-weight:700}
+.wknav .lbl{flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.wknav .today-btn{width:auto;padding:0 12px;font-size:11.5px}
+
+.plan-day{border-bottom:1px solid rgba(42,49,64,.5);padding:11px 0}
+.plan-day:last-child{border-bottom:none}
+.plan-day-head{display:flex;gap:11px;align-items:baseline}
+.plan-day .d{font-family:'JetBrains Mono',monospace;color:var(--muted);width:38px;flex-shrink:0;font-size:12px}
+.plan-day.today .d{color:var(--amber);font-weight:700}
+.plan-day .t{flex:1;min-width:0}
+.plan-day .t .n{font-weight:700;font-size:14px;line-height:1.35}
+.plan-day.today .t .n{color:var(--amber)}
+.plan-day .t .hf{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);margin-top:2px}
+.plan-day .dur{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:11.5px;flex-shrink:0}
+.plan-day .chev{color:var(--muted);font-size:11px;margin-left:6px;transition:transform .15s}
+.plan-day.open .chev{transform:rotate(90deg)}
+.plan-detail{margin-top:9px;padding:11px 13px;background:var(--surface2);border-left:2px solid var(--amber);border-radius:7px;font-size:12.5px;color:var(--muted);line-height:1.65;white-space:pre-wrap;display:none}
+.plan-day.open .plan-detail{display:block}
+
+.wksum{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:11px;padding-top:11px;border-top:1px solid var(--line);flex-wrap:wrap}
+.wksum b{color:var(--amber);font-family:'JetBrains Mono',monospace}
+
+.goal-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(42,49,64,.5);font-size:13px;align-items:baseline}
+.goal-row:last-child{border-bottom:none}
+.goal-row .gd{font-family:'JetBrains Mono',monospace;color:var(--muted);width:56px;flex-shrink:0;font-size:11px}
+.goal-row .gv{color:var(--muted);font-size:11.5px;margin-top:1px}
+.badge{font-size:9px;font-weight:800;letter-spacing:.05em;border-radius:5px;padding:2px 6px;text-transform:uppercase;flex-shrink:0}
+.badge.pr{background:rgba(255,176,32,.2);color:var(--amber)}
+.badge.ok{background:rgba(138,148,166,.14);color:var(--muted)}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:9px 4px;font-size:12px;font-weight:700}
+.tabs button.on{background:var(--amber);color:#14100a;border-color:var(--amber)}
+.tabview{display:none}
+.tabview.on{display:block}
+
+.phase-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(42,49,64,.5);font-size:12.5px;align-items:baseline}
+.phase-row:last-child{border:none}
+.phase-row .w{font-family:'JetBrains Mono',monospace;color:var(--amber);width:70px;flex-shrink:0;font-size:11px}
+.macro-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.macro-pill{background:var(--surface2);border-radius:8px;padding:5px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted)}
+.macro-pill b{color:var(--amber)}
+.meal-line{padding:4px 0;font-size:12.5px;color:var(--text);white-space:pre-wrap;line-height:1.6}
+
+.loading{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;padding:16px 0;justify-content:center}
+.spinner{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{color:var(--muted);font-size:12.5px;padding:8px 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+.offline-banner{background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.3);border-radius:9px;padding:8px 12px;font-size:11.5px;color:var(--amber);text-align:center;margin-bottom:10px;display:none}
+.offline-banner.show{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd">
+    <div class="wordmark">ECHE<span>LON</span><small>TRAININGSPLAN</small></div>
+    <button class="icon-btn" onclick="refreshAll()" id="refreshBtn">↻</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="offline-banner" id="offlineBanner">📡 Offline — zeige letzten geladenen Stand</div>
+
+  <div class="card race-hero" id="raceHero" style="display:none">
+    <div class="big" id="raceDays">—</div>
+    <div class="lbl">Tage bis zum Ziel</div>
+    <div class="title" id="raceTitle"></div>
+    <div class="date" id="raceDate"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="on" data-t="week" onclick="switchTab('week')">Woche</button>
+    <button data-t="goals" onclick="switchTab('goals')">Ziele</button>
+    <button data-t="phases" onclick="switchTab('phases')">Phasen</button>
+    <button data-t="food" onclick="switchTab('food')">Ernährung</button>
+    <button data-t="prep" onclick="switchTab('prep')">Vorkochen</button>
+  </div>
+
+  <div class="tabview on" id="tab-week">
+    <div class="card">
+      <div class="wknav">
+        <button onclick="shiftWeek(-1)">←</button>
+        <span class="lbl" id="weekRange">—</span>
+        <button onclick="shiftWeek(1)">→</button>
+      </div>
+      <button class="wknav today-btn" style="width:100%;margin-bottom:11px" onclick="shiftWeek(0)">Zu dieser Woche springen</button>
+      <div id="weekPlan"><div class="loading"><div class="spinner"></div></div></div>
+      <div class="wksum" id="weekSummary"></div>
+    </div>
+  </div>
+
+  <div class="tabview" id="tab-goals">
+    <div class="card">
+      <h3>Aktive Ziele</h3>
+      <div id="goalList"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <div class="tabview" id="tab-phases">
+    <div class="card">
+      <h3>Saison-Übersicht</h3>
+      <div id="phaseList"><div class="empty">Wird aus dem Plan abgeleitet…</div></div>
+    </div>
+  </div>
+
+  <div class="tabview" id="tab-food">
+    <div class="card">
+      <h3>Ernährungsplan <span class="right" style="color:var(--muted)">Fixe Wochenstruktur</span></h3>
+      <div id="foodList"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <div class="tabview" id="tab-prep">
+    <div class="card">
+      <h3>Meal Prep <span class="right" style="color:var(--muted)">Sonntags vorkochen</span></h3>
+      <div id="prepList"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL = 'https://wetkgqdmqvaxiuczzpak.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndldGtncWRtcXZheGl1Y3p6cGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNjU2NjUsImV4cCI6MjA5Njg0MTY2NX0.lL1wa8w7oHlLAJ5t9mcEVj2zmnIwYgAkWn7_OzJu2T8';
+
+const S = { today: new Date().toLocaleDateString('sv-SE'), weekOffset: 0, plan: [], goals: [] };
+
+async function sb(table, q) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}${q}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+  if (!r.ok) throw new Error(`${table}: ${r.status}`);
+  return r.json();
+}
+function esc(s) { return (s || '').replace(/</g, '&lt;'); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+
+function weekBounds(offset) {
+  const t = new Date(S.today);
+  const dow = t.getDay();
+  const mon = new Date(t); mon.setDate(t.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  return [mon.toLocaleDateString('sv-SE'), sun.toLocaleDateString('sv-SE')];
+}
+function shiftWeek(dir) {
+  S.weekOffset = dir === 0 ? 0 : S.weekOffset + dir;
+  loadWeek();
+}
+
+async function loadWeek() {
+  const [ws, we] = weekBounds(S.weekOffset);
+  document.getElementById('weekPlan').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    S.plan = await sb('adaptive_plan', `?plan_date=gte.${ws}&plan_date=lte.${we}&order=plan_date.asc`);
+    setOffline(false);
+  } catch (e) { setOffline(true); }
+  const off = S.weekOffset;
+  const tag = off === 0 ? ' · diese Woche' : off > 0 ? ` · in ${off} Wo.` : ` · vor ${-off} Wo.`;
+  document.getElementById('weekRange').textContent = `${ws.slice(8)}.${ws.slice(5,7)}.–${we.slice(8)}.${we.slice(5,7)}.${tag}`;
+  renderWeek();
+}
+
+function renderWeek() {
+  const el = document.getElementById('weekPlan');
+  if (!S.plan.length) { el.innerHTML = '<div class="empty">Kein Plan für diese Woche.</div>'; document.getElementById('weekSummary').innerHTML=''; return; }
+  const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  el.innerHTML = S.plan.map((p, i) => {
+    const isToday = p.plan_date === S.today;
+    const hf = p.hf_target_lo || p.hf_target_hi ? `HF ${p.hf_target_lo ?? ''}${p.hf_target_lo && p.hf_target_hi ? '–' : '≤'}${p.hf_target_hi ?? ''} bpm` : '';
+    return `<div class="plan-day${isToday ? ' today' : ''}" id="day${i}" onclick="toggleDay(${i})">
+      <div class="plan-day-head">
+        <span class="d">${days[new Date(p.plan_date).getDay()]} ${p.plan_date.slice(8)}.</span>
+        <span class="t"><div class="n">${esc(p.main_text)}</div>${hf ? `<div class="hf">${hf}</div>` : ''}</span>
+        <span class="dur">${p.duration_min ? p.duration_min + "'" : ''}</span>
+        <span class="chev">▸</span>
+      </div>
+      <div class="plan-detail">${esc(p.detail_text || 'Keine Details hinterlegt.')}${p.coaching_rationale ? '\\n\\n💡 ' + esc(p.coaching_rationale) : ''}</div>
+    </div>`;
+  }).join('');
+  const mins = S.plan.reduce((a, p) => a + (p.duration_min || 0), 0);
+  const runs = S.plan.filter(p => (p.sport_types || []).includes('run')).length;
+  const strength = S.plan.filter(p => (p.sport_types || []).includes('weighttraining')).length;
+  document.getElementById('weekSummary').innerHTML = `<span>Gesamt <b>${(mins/60).toFixed(1)}h</b></span><span>Läufe <b>${runs}</b></span><span>Kraft <b>${strength}</b></span>`;
+}
+function toggleDay(i) { document.getElementById('day' + i).classList.toggle('open'); }
+
+async function loadGoals() {
+  try {
+    S.goals = await sb('athlete_goals', '?status=eq.active&order=target_date.asc.nullslast');
+    setOffline(false);
+  } catch (e) { setOffline(true); return; }
+  const icons = { race_bike: '🚴', race_run: '🏃', strength: '🏋️', weight: '⚖️', custom: '🎯' };
+  const el = document.getElementById('goalList');
+  el.innerHTML = S.goals.map(g => {
+    const days = g.target_date ? Math.ceil((new Date(g.target_date) - new Date(S.today)) / 86400000) : null;
+    return `<div class="goal-row">
+      <span class="gd">${g.target_date ? g.target_date.slice(8)+'.'+g.target_date.slice(5,7)+'.' : '—'}</span>
+      <span style="flex:1"><strong>${icons[g.goal_type]||'🎯'} ${esc(g.title)}</strong> <span class="badge ${g.priority==='A'?'pr':'ok'}">${g.priority}</span>
+      <div class="gv">${esc(g.target_value||'')}${days!=null && days>0 ? ' · in '+days+' Tagen' : ''}</div></span>
+    </div>`;
+  }).join('') || '<div class="empty">Keine aktiven Ziele.</div>';
+
+  // Nächstes Renn-Ziel für Hero-Card
+  const nr = S.goals.find(g => (g.goal_type === 'race_bike' || g.goal_type === 'race_run') && g.target_date && g.target_date >= S.today);
+  const hero = document.getElementById('raceHero');
+  if (nr) {
+    const days = Math.ceil((new Date(nr.target_date) - new Date(S.today)) / 86400000);
+    document.getElementById('raceDays').textContent = days > 0 ? days : '🏁';
+    document.getElementById('raceTitle').textContent = nr.title;
+    document.getElementById('raceDate').textContent = new Date(nr.target_date).toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    hero.style.display = 'block';
+  } else { hero.style.display = 'none'; }
+}
+
+function renderPhases() {
+  // Grobe Phasenübersicht aus den geladenen Zielen ableiten (statisch für Übersicht)
+  const phases = [
+    { w: 'Aug–Sep', f: 'Z2-Grundlagenaufbau nach Saisonabschluss, Kraft-Wiedereinstieg Richtung 200kg/125kg' },
+    { w: 'Okt', f: 'Volumen steigt weiter, Lauf-Tempo konditional (nur wenn Achilles stabil + Volumen ausreicht)' },
+    { w: 'Nov', f: 'Peak-Volumen Z2 (~11h/Woche), Kraft-Block 3, Long Ride 3h (aufgeteilt 2×90min am WE)' },
+    { w: 'Dez', f: 'HM-Fähigkeit als Ziel (kein fester Renntermin), Kraft-Test Richtung Jahresziele' }
+  ];
+  document.getElementById('phaseList').innerHTML = phases.map(p => `<div class="phase-row"><span class="w">${p.w}</span><span>${esc(p.f)}</span></div>`).join('');
+}
+
+async function loadMealPrep() {
+  const el = document.getElementById('prepList');
+  try {
+    const [ingredients, portions] = await Promise.all([
+      sb('meal_prep', '?order=sort_order.asc'),
+      sb('meal_prep_portions', '?order=weekday.asc')
+    ]);
+    const order = [1,2,3,4,5,6,0];
+    const sortedPortions = order.map(w => portions.find(p => p.weekday === w)).filter(Boolean);
+    const ingHtml = ingredients.map(i => `<div class="goal-row"><span style="flex:1"><strong>${esc(i.ingredient)}</strong> — <span class="mono" style="color:var(--amber)">${esc(i.raw_amount)}</span><div class="gv">${esc(i.note||'')}</div></span></div>`).join('');
+    const portionHtml = `<div class="wksum" style="margin-top:2px;padding-top:10px">
+      ${sortedPortions.map(p => `<span>${p.day_label} <b>${p.reis_gekocht_g}g</b> ${p.status==='einfrieren'?'❄️':'🧊'}</span>`).join('')}
+    </div><div class="gv" style="margin-top:6px">🧊 frisch im Kühlschrank · ❄️ sofort einfrieren, am Vorabend auftauen</div>`;
+    el.innerHTML = ingHtml + portionHtml;
+  } catch (e) { el.innerHTML = '<div class="empty">Fehler beim Laden.</div>'; }
+}
+async function loadFood() {
+  const el = document.getElementById('foodList');
+  try {
+    const rows = await sb('nutrition_plan', '?order=weekday.asc');
+    // Sortierung Mo-So statt So-Sa (weekday 0=So)
+    const order = [1,2,3,4,5,6,0];
+    const sorted = order.map(w => rows.find(r => r.weekday === w)).filter(Boolean);
+    const todayDow = new Date(S.today).getDay();
+    el.innerHTML = sorted.map((r,i) => {
+      const isToday = r.weekday === todayDow;
+      return `<div class="plan-day${isToday?' today':''}" id="food${i}" onclick="toggleFood(${i})">
+        <div class="plan-day-head">
+          <span class="d">${r.day_label}</span>
+          <span class="t"><div class="n">${esc(r.main_text)}</div>
+            <div class="macro-row"><span class="macro-pill">P <b>${r.protein_g}g</b></span><span class="macro-pill">F <b>${r.fat_g}g</b></span><span class="macro-pill">C <b>${r.carb_g}g</b></span></div>
+          </span>
+          <span class="chev">▸</span>
+        </div>
+        <div class="plan-detail">${esc(r.detail_text)}</div>
+      </div>`;
+    }).join('');
+  } catch (e) { el.innerHTML = '<div class="empty">Fehler beim Laden.</div>'; }
+}
+function toggleFood(i) { document.getElementById('food'+i).classList.toggle('open'); }
+
+function switchTab(t) {
+  if (t === 'food' && !S._foodLoaded) { S._foodLoaded = true; loadFood(); }
+  if (t === 'prep' && !S._prepLoaded) { S._prepLoaded = true; loadMealPrep(); }
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('.tabview').forEach(v => v.classList.toggle('on', v.id === 'tab-' + t));
+}
+
+function setOffline(isOffline) {
+  document.getElementById('offlineBanner').classList.toggle('show', isOffline);
+}
+
+async function refreshAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.style.transition = 'transform .5s'; btn.style.transform = 'rotate(360deg)';
+  setTimeout(() => { btn.style.transition = 'none'; btn.style.transform = 'none'; }, 500);
+  await Promise.all([loadWeek(), loadGoals()]);
+  renderPhases();
+  toast('Aktualisiert ✓');
+}
+
+// Service Worker registrieren (Offline-Fähigkeit + Home-Bildschirm-Installation)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+init();
+async function init() {
+  await Promise.all([loadWeek(), loadGoals()]);
+  renderPhases();
+}
+</script>
+</body>
+</html>
