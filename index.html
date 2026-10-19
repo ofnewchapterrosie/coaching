@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ECHELON — Coaching OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#101318; --surface:#171B22; --surface2:#1F242E; --line:#2A3140;
+  --text:#E8ECF2; --muted:#8A94A6;
+  --amber:#FFB020; --green:#34D07C; --red:#F4544C; --blue:#5B9DFF;
+  --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:'Archivo',system-ui,sans-serif;font-size:15px;line-height:1.55;padding-bottom:76px}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--amber)}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:15px;background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px 11px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--amber);outline-offset:-1px;border-color:transparent}
+
+/* ---------- Shell ---------- */
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:50;background:rgba(16,19,24,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:14px;height:58px}
+.wordmark{font-weight:900;letter-spacing:.14em;font-size:16px}
+.wordmark span{color:var(--amber)}
+.race-chip{margin-left:auto;display:flex;align-items:baseline;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 13px}
+.race-chip .n{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--amber);font-size:15px}
+.race-chip .l{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.icon-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:9px;width:34px;height:34px;font-size:15px}
+
+nav.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);background:var(--bg)}
+nav.tabs button{flex:1;background:none;border:none;color:var(--muted);padding:11px 4px;font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border-bottom:2px solid transparent}
+nav.tabs button.on{color:var(--text);border-bottom-color:var(--amber)}
+@media(max-width:700px){
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:60;border-top:1px solid var(--line);border-bottom:none;padding-bottom:env(safe-area-inset-bottom)}
+  nav.tabs button{padding:13px 2px;font-size:10.5px}
+  nav.tabs button.on{border-bottom-color:transparent;border-top:2px solid var(--amber);margin-top:-1px}
+}
+main{padding:18px 0 30px}
+.tab{display:none}
+.tab.on{display:block}
+
+/* ---------- Cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.card h3{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:13px;display:flex;align-items:center;gap:8px}
+.card h3 .right{margin-left:auto;font-weight:500;letter-spacing:0;text-transform:none;font-size:11.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+
+/* ---------- Check-in ---------- */
+.ci-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:700px){.ci-grid{grid-template-columns:repeat(2,1fr)}}
+.ci-field label{display:block;font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;font-weight:700}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{flex:1;background:var(--surface2);border:none;color:var(--muted);padding:9px 4px;font-size:12.5px;font-weight:600}
+.seg button.on{background:var(--amber);color:#14100a}
+.seg button.on.g{background:var(--green);color:#0a1810}
+.seg button.on.r{background:var(--red);color:#1c0a08}
+.btn{border:none;border-radius:10px;padding:12px 18px;font-weight:800;font-size:14px;letter-spacing:.04em}
+.btn-primary{background:var(--amber);color:#14100a;width:100%}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--text)}
+.btn-sm{padding:7px 13px;font-size:12.5px;font-weight:700}
+
+/* ---------- Tagesurteil (Signature) ---------- */
+.urteil{border-radius:var(--radius);border:1px solid var(--line);overflow:hidden;margin-bottom:14px;animation:reveal .45s ease}
+@keyframes reveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.urteil{animation:none}}
+.urteil-head{display:flex;align-items:center;gap:16px;padding:20px 20px 16px;border-bottom:1px solid var(--line)}
+.urteil-lamp{width:15px;height:56px;border-radius:8px;flex-shrink:0}
+.urteil.v-green .urteil-lamp{background:var(--green);box-shadow:0 0 22px rgba(52,208,124,.45)}
+.urteil.v-amber .urteil-lamp{background:var(--amber);box-shadow:0 0 22px rgba(255,176,32,.45)}
+.urteil.v-red .urteil-lamp{background:var(--red);box-shadow:0 0 22px rgba(244,84,76,.45)}
+.urteil-title{font-size:24px;font-weight:900;letter-spacing:.02em;line-height:1.15}
+.urteil.v-green .urteil-title em{color:var(--green);font-style:normal}
+.urteil.v-amber .urteil-title em{color:var(--amber);font-style:normal}
+.urteil.v-red .urteil-title em{color:var(--red);font-style:normal}
+.urteil-sub{color:var(--muted);font-size:13px;margin-top:3px}
+.urteil-score{margin-left:auto;text-align:right}
+.urteil-score .n{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700}
+.urteil-score .l{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.urteil-rules{padding:8px 20px 14px;background:var(--surface)}
+.rule{display:flex;align-items:baseline;gap:11px;padding:7.5px 0;border-bottom:1px solid rgba(42,49,64,.55);font-size:13.5px}
+.rule:last-child{border-bottom:none}
+.rule .st{font-family:'JetBrains Mono',monospace;font-weight:700;width:18px;flex-shrink:0}
+.rule .st.ok{color:var(--green)} .rule .st.warn{color:var(--amber)} .rule .st.fail{color:var(--red)}
+.rule .nm{color:var(--muted);width:118px;flex-shrink:0;font-size:12px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.rule .tx{flex:1}
+.urteil-action{padding:14px 20px;border-top:1px solid var(--line);background:var(--surface2);font-size:14px}
+.urteil-action strong{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+
+/* ---------- Workout card ---------- */
+.wo-today .name{font-size:19px;font-weight:800;margin-bottom:4px}
+.wo-today .meta{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--amber);margin-bottom:9px}
+.wo-today .detail{font-size:13.5px;color:var(--muted);line-height:1.65}
+.rationale{margin-top:10px;padding:9px 12px;background:rgba(255,176,32,.06);border-left:2px solid var(--amber);border-radius:6px;font-size:12.5px;color:var(--muted)}
+.coach-turn{margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,49,64,.6)}
+.coach-turn.u{color:var(--text);background:var(--surface2);border-radius:10px;padding:9px 12px;border-top:none;font-size:14px}
+.coach-turn.a{font-size:14.5px}
+
+/* ---------- Coaching text ---------- */
+.coach-msg{font-size:14.5px;line-height:1.75}
+.coach-msg strong{color:var(--amber)}
+.phase-pill{font-size:10.5px;border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:2px 9px}
+
+/* ---------- Plan ---------- */
+.race-hero{background:linear-gradient(135deg,#1a1408 0%,var(--surface) 55%);border:1px solid rgba(255,176,32,.35)}
+.race-hero .big{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700;color:var(--amber);line-height:1}
+.race-hero .lbl{color:var(--muted);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.plan-day{display:flex;gap:13px;padding:12px 0;border-bottom:1px solid rgba(42,49,64,.55);align-items:baseline;cursor:pointer}
+.plan-day:hover{background:rgba(255,176,32,.03)}
+.plan-detail{padding:10px 14px;margin:2px 0 8px 45px;background:var(--surface2);border-left:2px solid var(--amber);border-radius:6px;font-size:12.5px;color:var(--muted);line-height:1.65;white-space:pre-wrap}
+.wknav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.wknav button{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700}
+.wknav button:disabled{opacity:.35}
+.wknav .lbl{flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--muted)}
+.wksum{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--line);flex-wrap:wrap}
+.wksum b{color:var(--amber);font-family:'JetBrains Mono',monospace}
+.plan-day:last-child{border-bottom:none}
+.plan-day .d{font-family:'JetBrains Mono',monospace;color:var(--muted);width:32px;font-size:12.5px;flex-shrink:0}
+.plan-day.today .d{color:var(--amber);font-weight:700}
+.plan-day .t{flex:1}
+.plan-day .t .n{font-weight:700;font-size:14.5px}
+.plan-day.today .t .n{color:var(--amber)}
+.plan-day .t .hf{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue);margin-top:1px}
+.plan-day .dur{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:12.5px}
+.phase-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(42,49,64,.55);font-size:13px;align-items:baseline}
+.phase-row:last-child{border:none}
+.phase-row .w{font-family:'JetBrains Mono',monospace;color:var(--amber);width:60px;flex-shrink:0;font-size:12px}
+.phase-row .f{flex:1}
+.phase-row .type{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- Analyse ---------- */
+.chart-box{width:100%;overflow:hidden}
+.chart-box svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.legend b{font-weight:700}
+.wo-row{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,49,64,.55);align-items:baseline}
+.wo-row:last-child{border:none}
+.wo-row .date{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:11.5px;width:74px;flex-shrink:0}
+.wo-row .nm{flex:1;font-weight:600;font-size:13.5px}
+.wo-row .nm .sub{font-family:'JetBrains Mono',monospace;font-weight:400;font-size:11px;color:var(--muted);margin-top:1px}
+.wo-row .tss{font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:13px}
+.badge{font-size:9.5px;font-weight:800;letter-spacing:.06em;border-radius:5px;padding:2px 6px;text-transform:uppercase}
+.badge.stark{background:rgba(52,208,124,.14);color:var(--green)}
+.badge.gut{background:rgba(91,157,255,.14);color:var(--blue)}
+.badge.ok{background:rgba(138,148,166,.14);color:var(--muted)}
+.badge.warn{background:rgba(255,176,32,.14);color:var(--amber)}
+.badge.pr{background:rgba(255,176,32,.2);color:var(--amber)}
+
+/* ---------- Chat ---------- */
+.chat-box{display:flex;flex-direction:column;height:calc(100vh - 250px);min-height:420px}
+.chat-msgs{flex:1;overflow-y:auto;padding:4px 2px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;padding:11px 14px;border-radius:13px;font-size:14px;line-height:1.65}
+.msg.u{white-space:pre-wrap}
+.msg ul{margin:6px 0 6px 18px}
+.msg li{margin:3px 0}
+.msg .h{display:block;font-weight:800;color:var(--amber);margin:8px 0 3px;font-size:13px;letter-spacing:.04em}
+.msg code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(255,176,32,.1);border-radius:4px;padding:1px 5px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chips button{background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:6px 12px;font-size:12px;font-weight:600}
+.chips button:hover{color:var(--text);border-color:var(--amber)}
+.msg.u{align-self:flex-end;background:var(--amber);color:#14100a;border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:var(--surface2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.a strong{color:var(--amber)}
+.chat-input{display:flex;gap:9px;margin-top:11px}
+.chat-input textarea{resize:none;min-height:48px;max-height:150px;overflow-y:auto}
+.chat-input button{flex-shrink:0}
+
+/* ---------- Wissen ---------- */
+.k-section{margin-bottom:4px}
+.k-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(42,49,64,.5);font-size:13.5px;align-items:baseline}
+.k-row:last-child{border:none}
+.k-row .k{color:var(--muted);width:150px;flex-shrink:0;font-size:12px;font-weight:700;letter-spacing:.03em}
+.k-row .v{flex:1}
+.k-row .v .mono{color:var(--amber);font-size:13px}
+.zone-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:4px 0 8px}
+.zone-cell{background:var(--surface2);border-radius:8px;padding:8px 6px;text-align:center;border-top:3px solid var(--line)}
+.zone-cell .zn{font-size:10px;font-weight:800;letter-spacing:.06em}
+.zone-cell .zv{font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:2px}
+.zone-cell .zu{font-size:9px;color:var(--muted)}
+.rule-item{padding:10px 0;border-bottom:1px solid rgba(42,49,64,.5);font-size:13.5px}
+.rule-item:last-child{border:none}
+.rule-item .rn{font-weight:800;margin-bottom:2px}
+.rule-item .rw{color:var(--muted);font-size:12.5px}
+
+/* ---------- Misc ---------- */
+.loading{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;padding:8px 0}
+.spinner{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:11px 18px;font-size:13.5px;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+.modal-bg{position:fixed;inset:0;background:rgba(10,12,16,.75);z-index:80;display:none;align-items:flex-end;justify-content:center}
+@media(min-width:700px){.modal-bg{align-items:center}}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 0 0;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;padding:22px}
+@media(min-width:700px){.modal{border-radius:18px}}
+.modal h2{font-size:17px;font-weight:800;margin-bottom:14px}
+.empty{color:var(--muted);font-size:13px;padding:6px 0}
+hr.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+/* ---------- Autopilot / Lagebild ---------- */
+.intel-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:700px){.intel-metrics{grid-template-columns:repeat(2,1fr)}}
+.im{background:var(--surface2);border-radius:9px;padding:9px 10px;border-left:3px solid var(--line)}
+.im.pos{border-left-color:var(--green)} .im.neg{border-left-color:var(--red)} .im.warn{border-left-color:var(--amber)}
+.im .v{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700}
+.im .l{font-size:9.5px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-top:1px}
+.alert-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(42,49,64,.5);font-size:13.5px;align-items:baseline}
+.alert-row:last-child{border:none}
+.alert-row .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;position:relative;top:-1px}
+.alert-row.a-warn .dot{background:var(--amber)} .alert-row.a-crit .dot{background:var(--red)} .alert-row.a-pos .dot{background:var(--green)}
+.wo-actions{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+.wt{padding:20px 18px 18px}
+.wt-kind{color:var(--muted);font-size:14px}
+.wt-rx{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:26px;line-height:1.2;letter-spacing:-.01em;margin:4px 0 8px;overflow-wrap:anywhere}
+.wt-meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--amber)}
+.wt-note{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.5}
+.wt-note.fb{color:var(--amber);padding-left:10px;border-left:2px solid var(--amber)}
+.wt-steps{margin-top:16px;border-top:1px solid var(--line)}
+.wt-step{display:grid;grid-template-columns:84px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.5}
+.wt-step .k{color:var(--muted)}
+.wt-step.solo{display:block}
+.wt-more>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:13px;padding:11px 0;display:flex;align-items:center;gap:7px}
+.wt-more>summary::-webkit-details-marker{display:none}
+.wt-more>summary::before{content:'';width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+.wt-more[open]>summary::before{transform:rotate(45deg)}
+.wt-more[open]>summary{border-bottom:1px solid var(--line)}
+.wt-foot{display:flex;gap:10px;margin-top:16px;align-items:stretch;justify-content:flex-end}
+.wt-foot[hidden],.wt-fb[hidden]{display:none}
+.wt .btn{font-weight:700;letter-spacing:0;font-size:14px}
+.wt .seg{flex:1;max-width:380px}
+.wt .seg button{padding:13px 6px;font-size:14px;color:var(--text);background:var(--surface2)}
+.wt .seg button+button{border-left:1px solid var(--line)}
+.wt .seg button.on{background:var(--amber);color:#14100a}
+.wt .seg button.on.g{background:var(--green);color:#0a1810}
+.wt summary.btn{list-style:none;display:flex;align-items:center}
+.wt summary.btn::-webkit-details-marker{display:none}
+.wt button:focus-visible,.wt summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.menu{position:relative;margin-left:auto}
+.menu-pop{position:absolute;right:0;bottom:calc(100% + 8px);min-width:220px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:6px;z-index:20;box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.menu-pop button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:11px 12px;border-radius:8px;font-size:14px}
+.menu-pop button:hover{background:var(--surface)}
+.wt-fb{margin-top:16px;background:var(--surface2);border-radius:12px;padding:15px}
+.fb-h{font-weight:700;font-size:15px}
+.fb-s{color:var(--muted);font-size:13.5px;margin-top:2px}
+.fb-rows{list-style:none;margin:12px 0 0;border-top:1px solid var(--line)}
+.fb-rows li{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.45}
+.fb-rows .d{color:var(--muted)}
+.fb-rows s{color:var(--muted)}
+.fb-more{color:var(--muted);font-size:12.5px;margin-top:8px}
+.fb-act{display:flex;gap:10px;margin-top:14px}
+.fb-act .btn{flex:1;width:auto}
+.fb-alt{margin-top:12px;background:none;border:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:4px 0}
+.proposal{background:rgba(255,176,32,.05);border:1px solid rgba(255,176,32,.35);border-radius:12px;padding:15px;margin-top:13px}
+.proposal .ph{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:9px}
+.proposal .pc{display:flex;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(42,49,64,.5)}
+.proposal .pc:last-of-type{border:none}
+.proposal .pc .pd{font-family:'JetBrains Mono',monospace;color:var(--muted);width:78px;flex-shrink:0;font-size:11.5px}
+.proposal .why{font-size:12.5px;color:var(--muted);margin:9px 0 11px;line-height:1.6}
+.race-proj{display:flex;gap:16px;margin-top:13px;padding-top:13px;border-top:1px solid rgba(255,176,32,.25);flex-wrap:wrap}
+.race-proj .rp .v{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700}
+.race-proj .rp .l{font-size:9.5px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hd">
+    <div class="wordmark">ECHE<span>LON</span></div>
+    <div class="race-chip"><span class="n" id="raceDays">—</span><span class="l" id="raceLabel">Tage bis Ziel</span></div>
+    <button class="icon-btn" onclick="syncNow()" title="Neu laden — Workouts, Analyse, Autopilot" id="syncBtn">↻</button>
+    <button class="icon-btn" onclick="openSettings()" title="Einstellungen">⚙</button>
+  </div>
+  <div class="wrap"><nav class="tabs">
+    <button class="on" data-tab="heute" onclick="switchTab('heute')">Heute</button>
+    <button data-tab="plan" onclick="switchTab('plan')">Plan</button>
+    <button data-tab="analyse" onclick="switchTab('analyse')">Analyse</button>
+    <button data-tab="max" onclick="switchTab('max')">Coach</button>
+    <button data-tab="wissen" onclick="switchTab('wissen')">Wissen</button>
+  </nav></div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ HEUTE ============ -->
+<section class="tab on" id="tab-heute">
+
+  <div class="card">
+    <h3>Check-in <span class="right mono" id="ciDate"></span></h3>
+    <div class="ci-grid">
+      <div class="ci-field"><label>HRV ms</label><input type="number" id="ciHrv" placeholder="42" inputmode="numeric"></div>
+      <div class="ci-field"><label>Schlaf h</label><input type="number" step="0.1" id="ciSleep" placeholder="7.5" inputmode="decimal"></div>
+      <div class="ci-field"><label>RHR bpm</label><input type="number" id="ciRhr" placeholder="55" inputmode="numeric"></div>
+      <div class="ci-field"><label>Body Battery</label><input type="number" id="ciBB" placeholder="80" inputmode="numeric"></div>
+    </div>
+    <div class="ci-grid" style="margin-top:10px">
+      <div class="ci-field" style="grid-column:span 2"><label>Achillessehne</label>
+        <div class="seg" id="segAchilles">
+          <button data-v="green" onclick="segSet(this)">Grün</button>
+          <button data-v="yellow" class="on" onclick="segSet(this)">Gelb</button>
+          <button data-v="red" onclick="segSet(this)">Rot</button>
+        </div></div>
+      <div class="ci-field" style="grid-column:span 2"><label>Beine</label>
+        <div class="seg" id="segBeine">
+          <button data-v="frisch" onclick="segSet(this)">Frisch</button>
+          <button data-v="normal" class="on" onclick="segSet(this)">Normal</button>
+          <button data-v="schwer" onclick="segSet(this)">Schwer</button>
+        </div></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn btn-primary" onclick="runVerdict()">Tagesurteil berechnen</button></div>
+  </div>
+
+  <div id="verdictBox"></div>
+
+  <div class="card" id="lagebildCard" style="display:none">
+    <h3>Autopilot — Lagebild <span class="right mono" id="intelStamp"></span></h3>
+    <div class="intel-metrics" id="intelMetrics"></div>
+    <div id="intelAlerts"></div>
+  </div>
+
+  <div id="proposalBox"></div>
+
+  <div class="card wo-today wt" id="todayWorkoutCard">
+    <div id="todayWorkout"><div class="loading"><div class="spinner"></div> Lade Plan…</div></div>
+  </div>
+
+  <div class="card">
+    <h3>ECHELON Tagescoaching <span class="phase-pill" id="phasePill">—</span>
+      <span class="right"><button class="btn btn-ghost btn-sm" onclick="genCoaching(true)">↻</button></span></h3>
+    <div id="coachThread">
+      <div class="coach-msg" id="coachMsg"><span class="empty">Berechne erst das Tagesurteil — ECHELON bezieht es ins Coaching ein.</span></div>
+    </div>
+    <div class="chat-input" style="margin-top:12px">
+      <textarea id="coachReplyInput" rows="1" placeholder="Antworten oder nachfragen…" oninput="autoGrow(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCoachReply()}"></textarea>
+      <button class="btn btn-primary" style="width:auto" onclick="sendCoachReply()">→</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ PLAN ============ -->
+<section class="tab" id="tab-plan">
+  <div class="card race-hero">
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div><div class="big" id="raceDays2">—</div><div class="lbl">Tage bis zum Start</div></div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:900;font-size:17px" id="raceTitle">—</div>
+        <div style="color:var(--muted);font-size:13px" id="raceDate">—</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openPlaybook()" id="playbookBtn">Race-Playbook</button>
+    </div>
+    <div class="race-proj" id="raceProj" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h3>Ziele <span class="right"><button class="btn btn-ghost btn-sm" onclick="planKombiBlock()">🧠 Kombi-Block</button> <button class="btn btn-ghost btn-sm" onclick="toggleGoalForm()">+ Neues Ziel</button></span></h3>
+    <div id="goalForm" style="display:none;margin-bottom:14px;padding:13px;background:var(--surface2);border-radius:11px">
+      <div class="ci-grid" style="grid-template-columns:1fr 1fr">
+        <div class="ci-field" style="grid-column:span 2"><label>Titel</label><input id="gTitle" placeholder="z.B. 5km unter 24:00"></div>
+        <div class="ci-field"><label>Typ</label><select id="gType">
+          <option value="race_run">🏃 Lauf-Event / Bestzeit</option>
+          <option value="race_bike">🚴 Rad-Event</option>
+          <option value="strength">🏋️ Kraftziel</option>
+          <option value="weight">⚖️ Gewicht</option>
+          <option value="custom">🎯 Sonstiges</option>
+        </select></div>
+        <div class="ci-field"><label>Zieldatum</label><input type="date" id="gDate"></div>
+        <div class="ci-field" style="grid-column:span 2"><label>Zielwert</label><input id="gValue" placeholder="z.B. 23:45 · 120kg · 89kg"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px">
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="addGoal()">Ziel anlegen</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleGoalForm()">Abbrechen</button>
+      </div>
+    </div>
+    <div id="goalList"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+
+  <div class="card">
+    <h3>Wochenplan <span class="right"><button class="btn btn-ghost btn-sm" onclick="genWeekReview()">Wochen-Review</button></span></h3>
+    <div class="wknav">
+      <button onclick="shiftWeek(-1)">←</button>
+      <span class="lbl" id="weekRange"></span>
+      <button onclick="shiftWeek(1)">→</button>
+      <button onclick="shiftWeek(0)" title="Zurück zu dieser Woche">Heute</button>
+    </div>
+    <div id="weekPlan"><div class="loading"><div class="spinner"></div> Lade…</div></div>
+    <div class="wksum" id="weekSummary"></div>
+  </div>
+
+  <div class="card">
+    <h3>Kraft-Blöcke <span class="right" style="color:var(--muted)">Max-Wert eintragen → nächster Block wird neu berechnet</span></h3>
+    <div id="strengthBlocks"></div>
+    <div class="ci-grid" style="grid-template-columns:1fr 1fr;margin-top:13px">
+      <div class="ci-field"><label>Neuer Max Kreuzheben (kg)</label><input type="number" id="newDL" placeholder="z.B. 192" inputmode="numeric"></div>
+      <div class="ci-field"><label>Neuer Max Bankdrücken (kg)</label><input type="number" id="newBank" placeholder="z.B. 110" inputmode="numeric"></div>
+    </div>
+    <div class="ci-field" style="margin-top:10px"><label>Ab welchem Datum neu berechnen?</label><input type="date" id="recalcFrom"></div>
+    <button class="btn btn-primary" style="margin-top:12px" onclick="recalcStrength()">Kraft-Blöcke neu berechnen</button>
+    <div id="recalcPreview"></div>
+  </div>
+
+  <div class="card">
+    <h3>Saison-Phasen</h3>
+    <div id="phasePlan"></div>
+  </div>
+</section>
+
+<!-- ============ ANALYSE ============ -->
+<section class="tab" id="tab-analyse">
+  <div class="card">
+    <h3>HRV — 30 Tage <span class="right" style="color:var(--muted)">Baselines: Alltag 33–37 · Biologisch 41–46</span></h3>
+    <div class="chart-box" id="hrvChart"><div class="loading"><div class="spinner"></div></div></div>
+    <div class="legend"><span><b style="color:var(--amber)">●</b> HRV</span><span><b style="color:var(--muted)">▬</b> Alltags-Baseline</span><span><b style="color:var(--green)">▬</b> Biologische Baseline</span></div>
+  </div>
+  <div class="card">
+    <h3>Trainingsbelastung — 60 Tage</h3>
+    <div class="chart-box" id="loadChart"><div class="loading"><div class="spinner"></div></div></div>
+    <div class="legend"><span><b style="color:var(--green)">▬</b> CTL Fitness</span><span><b style="color:var(--amber)">▬</b> ATL Müdigkeit</span><span><b style="color:var(--blue)">▬</b> TSB Form</span></div>
+  </div>
+  <div class="card">
+    <h3>Letzte Einheiten <span class="right" style="color:var(--muted)">ohne eBike</span></h3>
+    <div id="recentWorkouts"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+</section>
+
+<!-- ============ COACH CHAT ============ -->
+<section class="tab" id="tab-max">
+  <div class="card chat-box">
+    <h3>Coach <span class="right"><button class="btn btn-ghost btn-sm" onclick="clearChat()">Neuer Chat</button></span></h3>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chips" id="chatChips">
+      <button onclick="chipAsk('Erkläre mir das heutige Tagesurteil im Detail — welche Regel wiegt am schwersten?')">Tagesurteil erklären</button>
+      <button onclick="chipAsk('Wie lief meine Trainingswoche bisher? Kurze ehrliche Bewertung mit Zahlen.')">Wochen-Review</button>
+      <button onclick="chipAsk('Gib mir den Ibbenbüren-Pacing-Plan in Kurzform.')">Race-Pacing</button>
+      <button onclick="chipAsk('Sollte ich am Plan dieser Woche etwas ändern? Beziehe Check-ins und letzte Einheiten ein.')">Plan prüfen</button>
+    </div>
+    <div class="chat-input">
+      <textarea id="chatInput" rows="1" placeholder="Frag ECHELON…" oninput="autoGrow(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+      <button class="btn btn-primary" style="width:auto" onclick="sendChat()">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WISSEN ============ -->
+<section class="tab" id="tab-wissen">
+  <div class="card"><h3>Aktive Ziele</h3><div id="kGoals"><div class="empty">Lade…</div></div></div>
+  <div class="card"><h3>Athlet</h3><div id="kAthlete"></div></div>
+  <div class="card"><h3>Trainingszonen Rad</h3><div id="kZonesRad"></div></div>
+  <div class="card"><h3>Trainingszonen Lauf</h3><div id="kZonesRun"></div></div>
+  <div class="card"><h3>HRV-Framework</h3><div id="kHrv"></div></div>
+  <div class="card"><h3>Bestleistungen</h3><div id="kPRs"></div></div>
+  <div class="card"><h3>Coaching-Regeln <span class="right" style="color:var(--muted)">aus 7 Wochen Daten gelernt</span></h3><div id="kRules"></div></div>
+  <div class="card"><h3>Achilles-Protokoll</h3><div id="kAchilles"></div></div>
+  <div class="card"><h3>Ernährungsprotokoll</h3><div id="kNutrition"></div></div>
+</section>
+
+</main>
+
+<!-- Modals -->
+<div class="modal-bg" id="settingsModal"><div class="modal">
+  <h2>Einstellungen</h2>
+  <div class="ci-field"><label>Anthropic API Key</label><input type="password" id="setKey" placeholder="sk-ant-…"></div>
+  <div class="ci-field" style="margin-top:12px"><label>Lebenskontext (beeinflusst HRV-Schwellen)</label>
+    <div class="seg" id="segCtx">
+      <button data-v="alltag" class="on" onclick="segSet(this)">Alltag</button>
+      <button data-v="urlaub" onclick="segSet(this)">Urlaub</button>
+    </div></div>
+  <div style="display:flex;gap:9px;margin-top:16px">
+    <button class="btn btn-primary" style="flex:1" onclick="saveSettings()">Speichern</button>
+    <button class="btn btn-ghost" onclick="closeModal('settingsModal')">Schließen</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="playbookModal"><div class="modal">
+  <h2>🏁 Race-Playbook Ibbenbüren 240 km</h2>
+  <div id="playbookContent"></div>
+  <button class="btn btn-ghost" style="margin-top:14px;width:100%" onclick="closeModal('playbookModal')">Schließen</button>
+</div></div>
+
+<div class="modal-bg" id="goalModal"><div class="modal">
+  <h2 id="goalModalTitle">Block-Planung</h2>
+  <div id="goalModalContent" class="coach-msg"><div class="loading"><div class="spinner"></div> ECHELON plant…</div></div>
+  <div style="display:flex;gap:9px;margin-top:16px">
+    <button class="btn btn-primary" style="flex:1" id="goalApplyBtn" style="display:none" onclick="applyGoalPlan()" disabled>Übernehmen</button>
+    <button class="btn btn-ghost" onclick="closeModal('goalModal')">Schließen</button>
+  </div>
+</div></div>
+
+<div class="modal-bg" id="reviewModal"><div class="modal">
+  <h2>Wochen-Review</h2>
+  <div id="reviewContent" class="coach-msg"><div class="loading"><div class="spinner"></div> ECHELON analysiert die Woche…</div></div>
+  <div style="display:flex;gap:9px;margin-top:16px">
+    <button class="btn btn-primary" style="flex:1" id="reviewSaveBtn" onclick="saveWeekReview()" disabled>In Datenbank speichern</button>
+    <button class="btn btn-ghost" onclick="closeModal('reviewModal')">Schließen</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   ECHELON — KONSTITUTION
+   Das gesamte Coaching-Wissen aus 7 Wochen Zusammenarbeit.
+   Dieses Objekt ist das Gehirn: Engine und AI lesen daraus.
+================================================================ */
+const K = {
+  athlete: {
+    name: 'Florian', gewicht: 97, zielGewicht: 89, ort: 'Ladbergen (Teutoburger Wald)',
+    hfmax: 204, lthr: 178, rhrNorm: '54–58 bpm',
+    ftp: 265, ftpRange: '260–267W (Ableitung 20min-Peak 281W Tour de Zwift)',
+    vdot: 40.6, vdotPeak: '43.5 (Dez 2025 — 10k PR + HM sub 2h)',
+    profil: 'Sprinter-Profil: 791W/5s (8.15 W/kg) aber 214W/60min — große Schere. Aerobe Basis ist der Limitierer, nicht die Spitzenleistung.',
+    kommunikation: 'Direkt, analytisch, datenbasiert, Duzen. Kein Motivationsgeschwafel. Ehrliches Feedback auch wenn unbequem. Zahlen vor Meinungen.'
+  },
+  zonesRad: [
+    {z:'Z1', hf:'≤138', watt:'≤165', name:'Erholung', desc:'Aktive Clearance, FATmax', color:'#4a5568'},
+    {z:'Z2', hf:'139–155', watt:'170–210', name:'Aerob', desc:'Grundlage, Fettstoffwechsel — Florians HRV-Treiber', color:'#5B9DFF'},
+    {z:'SS', hf:'156–173', watt:'230–242', name:'Sweetspot', desc:'88–93% FTP, Schwellenentwicklung', color:'#34D07C'},
+    {z:'Z4', hf:'174–178', watt:'256–275', name:'Schwelle', desc:'LTHR-Bereich', color:'#FFB020'},
+    {z:'Z5', hf:'>178', watt:'>275', name:'VO2max', desc:'Nur dosiert — belastet Florians ZNS stark', color:'#F4544C'}
+  ],
+  zonesRun: [
+    {z:'Z1', hf:'≤133', pace:'6:40–7:10', name:'Easy', color:'#4a5568'},
+    {z:'Z2', hf:'≤148', pace:'6:00–6:30', name:'Aerob — Achilles-Cap', color:'#5B9DFF'},
+    {z:'Z3', hf:'149–160', pace:'~5:40', name:'Tempo', color:'#34D07C'},
+    {z:'Z4', hf:'161–178', pace:'~5:20', name:'Schwelle', color:'#FFB020'},
+    {z:'Z5', hf:'>178', pace:'~4:55', name:'Intervall', color:'#F4544C'}
+  ],
+  hrv: {
+    alltagBaseline: [33, 37], bioBaseline: [41, 46],
+    alarmAlltag: 34, alarmUrlaub: 38,
+    erkenntnis: 'HRV-Differenz Alltag vs. Urlaub ~8ms = messbarer Alltagsstress-Preis. Z2-Volumen ist der stärkste HRV-Treiber (Hitze-Woche: Ø43ms bei 403 TSS). Peak gemessen: 56ms (29.06. nach Z2-Woche + Ruhe). Tiefstwerte 28ms nach Überlastung (22.06., 05.07. RTF-Kater).'
+  },
+  prs: [
+    {name:'Bankdrücken', wert:'110 kg', datum:'27.06.2026', note:'Neuer 10-Wochen-Zyklus läuft, Ziel 115–120kg Sep 2026'},
+    {name:'Trap Bar DL', wert:'2×2 @182 kg (RPE 9,5)', datum:'07.07.2026', note:'e1RM ~195kg. Nächster PR-Versuch 190kg an frischem Tag'},
+    {name:'10 km Lauf', wert:'49:44', datum:'31.12.2025', note:'Pace 4:58/km — Peak-Laufform Winter 25/26'},
+    {name:'Halbmarathon', wert:'unter 2:00', datum:'13.12.2025', note:'Pace 5:33/km'},
+    {name:'5s Power', wert:'791 W', datum:'RTF Lengerich Jul 25', note:'8.15 W/kg — Sprinter-Beleg'},
+    {name:'20min Power', wert:'281 W', datum:'Tour de Zwift Jan 26', note:'FTP-Ableitung ~267W'}
+  ],
+  rules: [
+    {n:'Subjektiv schlägt Sensor', w:'Schwere Beine oder Müdigkeit → kein Maximalkraft/Intensität, egal wie gut HRV/BB aussehen. Gelernt 01.07.: HRV 49ms aber schwere Beine → Ruhetag war richtig.'},
+    {n:'Intensität nie nach 15 Uhr', w:'Abend-SST 09.07. → Deep Sleep 0.5h statt 1.5–2h. Cortisol/Körpertemperatur unterdrücken Tiefschlaf. Kraft & Intervalle vormittags/mittags.'},
+    {n:'SST & Intervalle nur indoor', w:'Outdoor-Stopps erzeugen Watt-Spikes (517W beim Anfahren) die Beine belasten ohne Trainingsreiz. Outdoor = Z2, RTF, Gruppe.'},
+    {n:'Kraft A → Z1, Kraft B → Z2', w:'Nach DL (ZNS-Last) nur Z1 ≤138bpm zur Clearance. Nach Bank (Oberkörper) ist Z2 aerober Reiz ohne Interferenz.'},
+    {n:'48h nach schwerem DL', w:'Keine Intensität innerhalb 48h nach DL ≥90% — ZNS-Superkompensation nicht stören.'},
+    {n:'Anstiegs-HF-Cap bei Langdistanz', w:'RTF 04.07.: HF-Spitzen 185–187bpm an Anstiegen trotz gutem Gefühl → RTF-Kater (HRV 28ms). Bei Ibbenbüren: Tempo raus BEVOR HF 160 überschreitet, sitzen bleiben, ziehen lassen.'},
+    {n:'eBike ist kein Training', w:'Pendel-Fahrten zählen 0.4 TSS/min, Motor-Watt ignorieren. Nie ins Coaching einbeziehen.'},
+    {n:'HRV-Alarm kontextabhängig', w:'Alltag: <34ms warnt. Urlaub: <38ms warnt. Die Baseline verschiebt sich mit Lebensstress.'},
+    {n:'Ruhetag heißt Ruhetag', w:'Kein "leichtes Training" an Ruhetagen. 60 Schritte am 05.07. → +9ms HRV am Folgetag.'},
+    {n:'Achilles vor Plan', w:'Bei Gelb kein Laufen ohne Test-Protokoll, bei Rot gar nicht. Rad ist immer ok. Kadenz 80–85 statt 90+ bei Sensibilität.'},
+    {n:'RTF fühlt sich leichter an als sie ist', w:'Adrenalin unterdrückt Erschöpfung während Gruppenfahrten. Der Preis kommt nachts (Body Battery 21, HRV −10ms). Nach RTF: 2 Ruhetage einplanen.'},
+    {n:'Z2 ist die Medizin', w:'Watt/HF-Effizienz stieg in 5 Wochen von 1.10 auf 1.36. HRV-Baseline steigt mit Z2-Volumen. Bei Zweifel: mehr Z2, weniger Intensität.'}
+  ],
+  kombi: [
+    {n:'A-Ziel bekommt die frischen Tage', w:'Bei mehreren Zielen strukturiert das A-Ziel die Woche — seine Schlüsseleinheiten liegen nach Ruhetagen. B-Ziele füllen die verbleibenden Slots.'},
+    {n:'Lauf-Qualität nie <48h nach schwerem DL', w:'Intervalle/Tempo-Läufe frühestens 48h nach DL ≥85% — ZNS und Waden brauchen die Lücke. Lockere Z2-Läufe sind nach 24h ok.'},
+    {n:'Bankdrücken stört Ausdauer nicht', w:'Oberkörper-Kraft ist frei platzierbar — auch am Vortag von Lauf- oder Rad-Qualität. Nur nicht am selben Tag VOR einer Schlüsseleinheit.'},
+    {n:'Krafterhalt braucht wenig', w:'2×/Woche @80–85% mit 3–4 Arbeitssätzen hält das Niveau monatelang. Kein Volumen-Zyklus nötig wenn Kraft nur B-Ziel ist.'},
+    {n:'Kraft-PR-Zyklus + Lauf-Block', w:'Geht gleichzeitig wenn: schwere DL-Tage ≥48h vor Lauf-Qualität, Bank-Peaking unabhängig, Gesamt-Strain über Monotonie überwacht. Beide Ziele auf A = keins wird optimal.'},
+    {n:'Ein Qualitätsreiz pro Tag', w:'Nie Lauf-Intervalle und schwere Kraft am selben Tag. Z2 + Kraft am selben Tag ist ok (Kraft zuerst wenn Kraft das Ziel ist, Ausdauer zuerst wenn Ausdauer das Ziel ist).'}
+  ],
+  achilles: {
+    status: 'gelb', historie: 'Okt 2025 (Teutolauf-Vorbereitung), Apr 2026 (nach 24km Trail), Jun 2026 (Hitze-Lauf 33°C).',
+    trigger: 'Schnelle Lauf-Volumensteigerung, Trail-Runs >20km, Laufen bei Hitze, Belastungswechsel Gehen/Laufen.',
+    protokoll: 'Grün: Laufen normal, +10% Volumen/Woche max. Gelb: nur Test-Läufe ≤4km HF≤145, weicher Untergrund, sofort abbrechen bei Schmerz. Rot: kein Laufen, Rad ok. Radfahren belastet die Sehne kaum — Kadenz 80–85rpm bei Sensibilität.',
+    muster: 'Reagiert 2–3 Wochen NACH dem Auslöser, nicht sofort. Wiederkehrend bei Volumensteigerung nach Pause.'
+  },
+  nutrition: {
+    ruhetag: 'Ruhetag/Kraft: ~2200 kcal — 150g Reis (roh), 5 Eier, 400g Magerquark, 250g Hähnchenbrust, 300g TK-Gemüse, 1 EL Olivenöl. Protein ~242g (2.5g/kg).',
+    intensiv: 'Intensitätstag: ~2500 kcal — gleiche Basis + 230g Reis statt 150g + 2 Bananen (1 direkt post-workout).',
+    race: 'Vor Events: +30–40% KH am Vortag, 2.5–3L Wasser, +1–2g Natrium. Während: 60–80g KH/h ab km 20.',
+    diaet: 'Aggressives Defizit nur außerhalb von Aufbau-Blöcken und nie bei gereizter Achillessehne (Kollagensynthese braucht Energie). Sep–Nov 2026: −500 kcal/Tag geplant.'
+  },
+  race: {
+    name: 'Ibbenbüren 240km', datum: '2026-08-01',
+    pacing: 'Km 0–60: Z2 STRIKT (HF ≤155) — egal wie gut die Beine sind. Km 60–150: Z2/Z3 nach Gefühl, Sweetspot-Anteile ok. Km 150–240: alles was geht.',
+    anstiege: 'HF-Cap 160bpm bergauf. Tempo raus BEVOR die HF steigt, im Sattel bleiben, Gruppen ziehen lassen. Das ist Florians größtes Rennrisiko (RTF-Daten: 185–187bpm an Anstiegen).',
+    ernaehrung: '60–80g KH/h ab km 20, alle 20–30min essen. Salz 500mg/h. Trinken 750ml/h, bei Hitze mehr.',
+    material: 'Pulsgurt PFLICHT (04.07. vergessen — Uhr-HF reicht nicht für Pacing-Kontrolle).',
+    mental: 'Häufigster 240km-Fehler: Überpacen in Stunde 1. Adrenalin lügt — die Uhr nicht.'
+  },
+  saison: [
+    {w:'Jul W6–7', f:'SST-Block + Taper. Generalprobe RTF 18.07. (120–140km, Ernährung + Anstiegs-Pacing testen)', t:'build'},
+    {w:'Jul W8', f:'Finaler Taper, KH-Loading ab 24.07. → Renntag 01.08. 🏁', t:'race'},
+    {w:'Aug', f:'2–3 Wochen echte Erholung nach 240km. Kraft nach 1 Woche wieder, Ausdauer nach Gefühl', t:'recovery'},
+    {w:'Sep–Dez', f:'Z2-Volumen-Block: 5–6h Sep → 9–10h Nov → 6–7h Dez. Rad + Laufen. 1× harte Einheit/Woche (Zwift Race). Kraft 2×/Woche. Diät −500 kcal Sep–Nov → Ziel 89–91kg', t:'base'},
+    {w:'Jan 27', f:'Neustart mit Basis: HRV 40–45ms, FTP 275–285W, Bank 115–120kg, DL 190–200kg', t:'goal'}
+  ]
+};
+
+/* ================================================================
+   CONFIG + STATE
+================================================================ */
+const SB_URL = 'https://wetkgqdmqvaxiuczzpak.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndldGtncWRtcXZheGl1Y3p6cGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNjU2NjUsImV4cCI6MjA5Njg0MTY2NX0.lL1wa8w7oHlLAJ5t9mcEVj2zmnIwYgAkWn7_OzJu2T8';
+const MODEL_FAST = 'claude-haiku-4-5';
+const MODEL_SMART = 'claude-sonnet-4-6';
+let CLAUDE_KEY = localStorage.getItem('coaching_claude_key') || '';
+
+const S = {
+  today: new Date().toLocaleDateString('sv-SE'),
+  ctx: localStorage.getItem('ech_ctx') || localStorage.getItem('max2_ctx') || 'alltag',
+  checkin: null, verdict: null, plan: [], load: [], hrvHist: [], workouts: [], chat: []
+};
+
+/* ================================================================
+   HELPERS
+================================================================ */
+async function sb(table, q) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}${q}`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } });
+  if (!r.ok) throw new Error(`${table}: ${r.status}`);
+  return r.json();
+}
+async function sbUpsert(table, body, conflict) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}${conflict ? '?on_conflict=' + conflict : ''}`, {
+    method: 'POST',
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+    body: JSON.stringify(body)
+  });
+  return r.ok;
+}
+async function sbPatch(table, filter, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH',
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+  return r.ok;
+}
+async function sbDelete(table, filter) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
+    method: 'DELETE',
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+  });
+  return r.ok;
+}
+async function claudeStream(system, messages, model, maxTokens, onDelta) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': CLAUDE_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: model || MODEL_SMART, max_tokens: maxTokens || 900, system, messages, stream: true })
+  });
+  if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error?.message || ('HTTP ' + r.status)); }
+  const reader = r.body.getReader(); const dec = new TextDecoder();
+  let buf = '', full = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n'); buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const ev = JSON.parse(line.slice(6));
+        if (ev.type === 'content_block_delta' && ev.delta?.text) { full += ev.delta.text; onDelta(full); }
+      } catch (e) {}
+    }
+  }
+  return full;
+}
+async function claude(system, messages, model, maxTokens) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': CLAUDE_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: model || MODEL_FAST, max_tokens: maxTokens || 700, system, messages })
+  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.content.map(c => c.text || '').join('');
+}
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2600); }
+function esc(s) { return (s || '').replace(/</g, '&lt;'); }
+function fmt(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'); }
+function md(t) {
+  const lines = esc(t || '').split('\n');
+  let html = '', inList = false;
+  for (let ln of lines) {
+    ln = ln.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/`([^`]+)`/g, '<code>$1</code>');
+    const li = ln.match(/^\s*[-•]\s+(.*)/);
+    const h = ln.match(/^#{1,4}\s+(.*)/);
+    if (li) { if (!inList) { html += '<ul>'; inList = true; } html += '<li>' + li[1] + '</li>'; continue; }
+    if (inList) { html += '</ul>'; inList = false; }
+    if (h) { html += '<span class="h">' + h[1] + '</span>'; continue; }
+    if (ln.trim() === '') { html += '<br>'; continue; }
+    html += ln + '<br>';
+  }
+  if (inList) html += '</ul>';
+  return html.replace(/(<br>\s*)+$/, '').replace(/<br><span class="h">/g, '<span class="h">');
+}
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 150) + 'px'; }
+function chipAsk(t) { const i = document.getElementById('chatInput'); i.value = t; sendChat(); }
+function clearChat() { S.chat = []; renderChat(); toast('Neuer Chat — Verlauf in der Datenbank bleibt erhalten'); }
+function segSet(btn) { btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('on', 'g', 'r')); btn.classList.add('on'); if (btn.dataset.v === 'green' || btn.dataset.v === 'frisch') btn.classList.add('g'); if (btn.dataset.v === 'red' || btn.dataset.v === 'schwer') btn.classList.add('r'); }
+function segVal(id) { return document.querySelector(`#${id} button.on`)?.dataset.v; }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+/* ================================================================
+   AUTOREGULATIONS-ENGINE — Das Tagesurteil
+   Deterministische Regeln aus 7 Wochen Coaching-Daten.
+================================================================ */
+function computeVerdict(ci, planToday, ctx) {
+  const rules = [];
+  let level = 0; // 0=GRÜN 1=GELB 2=ROT
+  const bump = (l) => { level = Math.max(level, l); };
+  const isIntense = planToday && /vo2|sst|intervall|hart|race|rtf|generalprobe|over|peaking/i.test((planToday.main_text || '') + (planToday.detail_text || ''));
+  const isStrength = planToday && /kraft/i.test(planToday.main_text || '');
+  const isRun = planToday && /lauf|run/i.test(planToday.main_text || '');
+  const isRest = planToday && /ruhetag/i.test(planToday.main_text || '');
+
+  // R1: HRV vs. kontextabhängiger Alarm
+  const alarm = ctx === 'urlaub' ? K.hrv.alarmUrlaub : K.hrv.alarmAlltag;
+  if (ci.hrv == null) rules.push({ st: 'warn', nm: 'HRV', tx: 'Kein Wert — Urteil ohne HRV weniger belastbar' });
+  else if (ci.hrv < alarm - 4) { rules.push({ st: 'fail', nm: 'HRV', tx: `${ci.hrv}ms — deutlich unter Alarm (${alarm}ms, ${ctx})` }); bump(2); }
+  else if (ci.hrv < alarm) { rules.push({ st: 'warn', nm: 'HRV', tx: `${ci.hrv}ms — unter Alarm (${alarm}ms, ${ctx})` }); bump(1); }
+  else rules.push({ st: 'ok', nm: 'HRV', tx: `${ci.hrv}ms — über Schwelle (${alarm}ms, Kontext: ${ctx})` });
+
+  // R2: Body Battery
+  if (ci.bb != null) {
+    if (ci.bb < 35) { rules.push({ st: 'fail', nm: 'Body Battery', tx: `${ci.bb} — stark entleert` }); bump(2); }
+    else if (ci.bb < 55) { rules.push({ st: 'warn', nm: 'Body Battery', tx: `${ci.bb} — keine Intensität heute` }); if (isIntense || isStrength) bump(1); }
+    else rules.push({ st: 'ok', nm: 'Body Battery', tx: `${ci.bb} — ausreichend geladen` });
+  }
+
+  // R3: Schlaf
+  if (ci.sleep != null) {
+    if (ci.sleep < 5) { rules.push({ st: 'fail', nm: 'Schlaf', tx: `${ci.sleep}h — keine Intensität nach <5h Schlaf` }); if (isIntense) bump(2); else bump(1); }
+    else if (ci.sleep < 6.5) { rules.push({ st: 'warn', nm: 'Schlaf', tx: `${ci.sleep}h — knapp, Belastung dosieren` }); if (isIntense) bump(1); }
+    else rules.push({ st: 'ok', nm: 'Schlaf', tx: `${ci.sleep}h` });
+  }
+
+  // R3b: RHR vs. 7-Tage-Schnitt (Infekt-/Übermüdungs-Frühwarnung)
+  if (ci.rhr != null) {
+    const rhrVals = (S.ci7 || []).map(x => x.resting_hr).filter(v => v != null);
+    if (rhrVals.length >= 4) {
+      const avg = rhrVals.reduce((a, b) => a + +b, 0) / rhrVals.length;
+      const dev = ci.rhr - avg;
+      if (dev >= 7) { rules.push({ st: 'fail', nm: 'RHR', tx: `${ci.rhr} bpm — +${dev.toFixed(0)} über 7d-Ø (${avg.toFixed(0)}). Infekt oder Übermüdung möglich` }); bump(2); }
+      else if (dev >= 4) { rules.push({ st: 'warn', nm: 'RHR', tx: `${ci.rhr} bpm — +${dev.toFixed(0)} über 7d-Ø (${avg.toFixed(0)})` }); bump(1); }
+      else rules.push({ st: 'ok', nm: 'RHR', tx: `${ci.rhr} bpm (7d-Ø ${avg.toFixed(0)})` });
+    } else rules.push({ st: 'ok', nm: 'RHR', tx: `${ci.rhr} bpm` });
+  }
+
+  // R3c: HRV-Trend über 4 Tage (Einbruch-Vorstufe erkennen)
+  const hrvPrev = (S.ci7 || []).map(x => x.hrv_ms).filter(v => v != null).slice(-3);
+  if (ci.hrv != null && hrvPrev.length === 3) {
+    const sl = linSlope([...hrvPrev.map(Number), ci.hrv]);
+    if (sl < -2 && ci.hrv < alarm + 4) { rules.push({ st: 'warn', nm: 'HRV-Trend', tx: `fällt ${sl.toFixed(1)}ms/Tag über 4 Tage Richtung Alarm — Einbruch-Vorstufe (Muster vom 05.07.)` }); bump(1); }
+  }
+
+  // R4: Subjektiv schlägt Sensor (Regel #1 der Konstitution)
+  if (ci.beine === 'schwer') { rules.push({ st: 'fail', nm: 'Beine', tx: 'Schwer — subjektiv schlägt Sensor: kein Maximalkraft/Intensität heute' }); if (isIntense || isStrength) bump(2); else bump(1); }
+  else if (ci.beine === 'frisch') rules.push({ st: 'ok', nm: 'Beine', tx: 'Frisch' });
+  else rules.push({ st: 'ok', nm: 'Beine', tx: 'Normal' });
+
+  // R5: Achilles-Gate
+  if (isRun) {
+    if (ci.achilles === 'red') { rules.push({ st: 'fail', nm: 'Achilles', tx: 'ROT — kein Laufen. Rad als Ersatz.' }); bump(2); }
+    else if (ci.achilles === 'yellow') { rules.push({ st: 'warn', nm: 'Achilles', tx: 'GELB — nur Test-Lauf ≤4km, HF ≤145, sofort abbrechen bei Schmerz' }); bump(1); }
+    else rules.push({ st: 'ok', nm: 'Achilles', tx: 'GRÜN — Laufen frei, +10%/Woche max' });
+  } else if (ci.achilles !== 'green') {
+    rules.push({ st: 'ok', nm: 'Achilles', tx: `${ci.achilles === 'red' ? 'ROT' : 'GELB'} — heute kein Lauf geplant, Rad belastet kaum. Kadenz 80–85` });
+  } else rules.push({ st: 'ok', nm: 'Achilles', tx: 'GRÜN' });
+
+  // R5b: 48h nach schwerem DL keine Intensität (Konstitution Regel 5 — jetzt durchgesetzt)
+  const heavyDL = (S.workouts || []).find(w =>
+    (w.sport || '').includes('weight') && /kraft tag a|deadlift|kreuzheben|\bdl\b/i.test(w.name || '') &&
+    w.workout_date < S.today && (new Date(S.today) - new Date(w.workout_date)) <= 2 * 86400000);
+  if (heavyDL && isIntense) {
+    rules.push({ st: 'warn', nm: '48h-DL', tx: `Schweres DL am ${heavyDL.workout_date.slice(8)}.${heavyDL.workout_date.slice(5, 7)}. — Intensität <48h danach stört die ZNS-Superkompensation` });
+    bump(1);
+  }
+
+  // R5c: Vortagslast (RTF-Kater-Regel — der Preis kommt am Tag danach)
+  const yest = new Date(new Date(S.today).getTime() - 86400000).toLocaleDateString('sv-SE');
+  const yTss = (S.workouts || []).filter(w => w.workout_date === yest).reduce((a, w) => a + (w.tss || 0), 0);
+  if (yTss >= 110) {
+    rules.push({ st: 'warn', nm: 'Vortagslast', tx: `${yTss} TSS gestern — Kater-Fenster (RTF-Regel: Adrenalin lügt, die Rechnung kommt heute). Konservativ bleiben` });
+    if (isIntense || isStrength) bump(1);
+  }
+
+  // R6: Uhrzeit-Regel für Intensität
+  const hour = new Date().getHours();
+  if ((isIntense || isStrength) && hour >= 15 && !isRest) {
+    rules.push({ st: 'warn', nm: 'Timing', tx: `${hour} Uhr — Intensität nach 15 Uhr kostet Tiefschlaf (0.5h-Erfahrung 09.07.). Wenn möglich vorziehen.` });
+  }
+
+  // R7: TSB
+  const tsb = S.tsbToday != null ? S.tsbToday : (S.load.length ? parseFloat(S.load[S.load.length - 1].tsb) : null);
+  if (tsb != null) {
+    if (tsb < -35) { rules.push({ st: 'fail', nm: 'TSB', tx: `${tsb.toFixed(1)} — tiefes Loch, Erholung hat Vorrang` }); bump(2); }
+    else if (tsb < -25 && isIntense) { rules.push({ st: 'warn', nm: 'TSB', tx: `${tsb.toFixed(1)} — keine Intensität unter −25` }); bump(1); }
+    else rules.push({ st: 'ok', nm: 'TSB', tx: `${tsb.toFixed(1)}` });
+  }
+
+  // R8: Race-Nähe (nächstes aktives Event-Ziel)
+  const nr = typeof nextRace === 'function' ? nextRace() : { name: K.race.name, date: K.race.datum };
+  const daysToRace = Math.ceil((new Date(nr.date) - new Date(S.today)) / 86400000);
+  if (daysToRace > 0 && daysToRace <= 10) {
+    rules.push({ st: 'warn', nm: 'Taper', tx: `${daysToRace} Tage bis ${nr.name} — Frische schlägt Fitness. Kein Risiko mehr.` });
+    if (isIntense && level === 0) bump(1);
+  }
+
+  const verdicts = [
+    { v: 'green', word: 'GRÜNES LICHT', sub: 'Plan wie vorgesehen ausführen' },
+    { v: 'amber', word: 'MODIFIZIERT', sub: 'Trainieren ja — aber angepasst' },
+    { v: 'red', word: 'ERHOLUNG', sub: 'Heute gewinnt der Ruhetag' }
+  ];
+
+  // Konkrete Aktion ableiten
+  let action = '';
+  if (isRest) action = 'Ruhetag steht im Plan — perfekt, dabei bleiben. Kein "leichtes Training" (Ruhetag heißt Ruhetag).';
+  else if (level === 0) action = `${planToday ? planToday.main_text : 'Geplante Einheit'} wie geplant. ${isIntense ? 'Watt als primäre Steuerung, HF als Deckel.' : isRun ? 'HF ≤148, weicher Untergrund bevorzugt.' : 'HF-Zonen einhalten, nicht anreißen nur weil die Beine gut sind.'}`;
+  else if (level === 1) {
+    if (isIntense) action = 'Intensität reduzieren: SST → 2×15min statt 2×20min, oder auf Z2 60min umsteigen. Entscheidung nach den ersten 10min Aufwärmen.';
+    else if (isStrength) action = 'Kraft mit −15–20% Gewicht, keine Top-Singles. Aufwärmsatz entscheidet: fühlt er sich zäh an → weiter reduzieren.';
+    else if (isRun) action = 'Lauf nur nach Achilles-Testprotokoll: ≤4km, HF ≤145, bei Zwicken sofort abbrechen. Alternativ Rad Z2.';
+    else action = 'Einheit kürzen (−25–30%) und HF am unteren Zonenrand halten.';
+  }
+  else action = 'Heute Ruhetag — auch wenn der Plan etwas anderes sagt. Die Einheit wird verschoben, nicht gestrichen. Füße hoch, gut essen, früh schlafen. Der Körper baut in der Pause auf.';
+
+  // Score (informativ)
+  let score = 85;
+  rules.forEach(r => { if (r.st === 'warn') score -= 11; if (r.st === 'fail') score -= 24; });
+  score = Math.max(15, Math.min(98, score));
+
+  const kcal = level === 2 ? '2200 kcal — Ruhetag-Protokoll (150g Reis · 5 Eier · 400g Quark · 250g Hähnchen)'
+    : isIntense ? '2500 kcal — Intensitätstag (230g Reis · +2 Bananen, 1 direkt post-workout)'
+    : '2200 kcal — Basis-Protokoll';
+  return { ...verdicts[level], level, rules, action, score, daysToRace, kcal };
+}
+
+async function runVerdict() {
+  const ci = {
+    hrv: parseFloat(document.getElementById('ciHrv').value) || null,
+    sleep: parseFloat(document.getElementById('ciSleep').value) || null,
+    rhr: parseFloat(document.getElementById('ciRhr').value) || null,
+    bb: parseFloat(document.getElementById('ciBB').value) || null,
+    achilles: segVal('segAchilles'),
+    beine: segVal('segBeine')
+  };
+  if (!ci.hrv && !ci.sleep && !ci.bb) { toast('Mindestens HRV, Schlaf oder Body Battery eingeben'); return; }
+  S.checkin = ci;
+
+  const planToday = S.plan.find(p => p.plan_date === S.today);
+  const v = computeVerdict(ci, planToday, S.ctx);
+  S.verdict = v;
+  renderVerdict(v);
+
+  // Check-in speichern
+  const labels = ['GUT', 'MODERAT', 'SCHLECHT'];
+  sbUpsert('daily_checkin', {
+    checkin_date: S.today, hrv_ms: ci.hrv, sleep_hours: ci.sleep, resting_hr: ci.rhr,
+    achilles: ci.achilles, our_readiness: v.score, our_readiness_label: labels[v.level],
+    notes: `ECHELON Urteil: ${v.word}. Beine: ${ci.beine}. BB: ${ci.bb ?? '—'}. Kontext: ${S.ctx}.`
+  }, 'checkin_date').then(ok => { if (ok) toast('Check-in gespeichert ✓'); });
+
+  genCoaching(false);
+}
+
+function renderVerdict(v) {
+  const box = document.getElementById('verdictBox');
+  box.innerHTML = `
+  <div class="urteil v-${v.v}" style="background:var(--surface)">
+    <div class="urteil-head">
+      <div class="urteil-lamp"></div>
+      <div>
+        <div class="urteil-title">Heute: <em>${v.word}</em></div>
+        <div class="urteil-sub">${v.sub}${v.daysToRace > 0 ? ` · ${v.daysToRace} Tage bis Ibbenbüren` : ''}</div>
+      </div>
+      <div class="urteil-score"><div class="n">${v.score}</div><div class="l">Readiness</div></div>
+    </div>
+    <div class="urteil-rules">
+      ${v.rules.map(r => `<div class="rule"><span class="st ${r.st}">${r.st === 'ok' ? '✓' : r.st === 'warn' ? '△' : '✕'}</span><span class="nm">${r.nm}</span><span class="tx">${r.tx}</span></div>`).join('')}
+    </div>
+    <div class="urteil-action"><strong>Konkret heute</strong>${v.action}<div style="margin-top:8px;color:var(--muted);font-size:13px">🍚 ${v.kcal}</div></div>
+  </div>`;
+}
+
+/* ================================================================
+   AI-COACHING — Konstitution + Live-Daten → Coaching-Text
+================================================================ */
+function buildSystemPrompt() {
+  const rulesTxt = K.rules.map(r => `- ${r.n}: ${r.w}`).join('\n');
+  return `Du bist ECHELON — Florians persönlicher Trainingscoach seit Juni 2026. Der Name kommt von der Windstaffel: du bist die Formation, die ihn bei Gegenwind schützt und das Tempo vorgibt. Ex-Profi-Radsportler, direkt, analytisch, datenbasiert. Du duzt. Kein Motivationsgeschwafel, keine Floskeln. Zahlen vor Meinungen. Ehrlich auch wenn unbequem.
+
+ATHLET: ${K.athlete.name}, ${K.athlete.gewicht}kg (Ziel ${K.athlete.zielGewicht}kg), ${K.athlete.ort}. FTP ${K.athlete.ftp}W. LTHR ${K.athlete.lthr}. HFmax ${K.athlete.hfmax}. VDOT ${K.athlete.vdot}. ${K.athlete.profil}
+
+ZONEN RAD: Z1 ≤138 | Z2 139–155 | Sweetspot 156–173 | Z4 174–178 | Z5 >178 bpm. Watt: Z2 170–210W, SST 230–242W.
+ZONEN LAUF: Z2 ≤148bpm (Achilles-Cap).
+
+HRV-FRAMEWORK: Alltags-Baseline 33–37ms, biologische Baseline 41–46ms. Alarm: Alltag <34ms, Urlaub <38ms. Z2-Volumen ist Florians stärkster HRV-Treiber.
+
+ACHILLES: Status ${K.achilles.status}. ${K.achilles.muster} Trigger: ${K.achilles.trigger}
+
+AKTIVE ZIELE:
+${(S.goals || []).map(g => `- ${g.title} (${g.goal_type}${g.target_date ? ', ' + g.target_date : ''}): ${g.target_value || ''}`).join('\n') || '- Ibbenbüren 240km am 01.08.2026'}
+
+NÄCHSTES EVENT: ${typeof nextRace === 'function' ? nextRace().name + ' am ' + nextRace().date : 'Ibbenbüren 01.08.2026'}
+${/ibbenb/i.test((typeof nextRace === 'function' ? nextRace().name : 'ibbenbüren')) ? 'IBBENBÜREN-PACING: ' + K.race.pacing + ' Anstiege: ' + K.race.anstiege : 'LAUF-BLÖCKE: Achilles-Protokoll strikt — max +10% Volumen/Woche, Z2 ≤148bpm, Qualität erst nach 2 Wochen grüner Achillessehne.'}
+
+GELERNTE REGELN (strikt einhalten):
+${rulesTxt}
+
+KOMBI-REGELN bei mehreren Zielen (Concurrent Training):
+${K.kombi.map(r => `- ${r.n}: ${r.w}`).join('\n')}
+
+ERNÄHRUNG: ${K.nutrition.ruhetag} ${K.nutrition.intensiv}
+
+SAISON NACH IBBENBÜREN: Sep–Dez Z2-Volumen-Block (5→10h/Woche), 1× Intensität/Woche, Kraft 2×, Diät −500kcal. Ziel Jan 2027: HRV 40–45ms Basis, FTP 275–285W, 89–91kg.`;
+}
+
+function liveContext() {
+  const ci = S.checkin;
+  const v = S.verdict;
+  const planToday = S.plan.find(p => p.plan_date === S.today);
+  const recent = S.workouts.slice(0, 4).map(w => `${w.workout_date}: ${w.name} | TSS ${w.tss ?? '—'} | ${w.avg_watts ? 'Ø' + w.avg_watts + 'W' : ''} ${w.avg_hr ? 'Ø' + w.avg_hr + 'bpm' : ''} ${w.quality_label || ''}`).join('\n');
+  const tl = S.load.length ? S.load[S.load.length - 1] : null;
+  return `HEUTE: ${S.today} (${['So','Mo','Di','Mi','Do','Fr','Sa'][new Date(S.today).getDay()]})
+CHECK-IN: ${ci ? `HRV ${ci.hrv ?? '—'}ms | Schlaf ${ci.sleep ?? '—'}h | RHR ${ci.rhr ?? '—'} | BB ${ci.bb ?? '—'} | Achilles ${ci.achilles} | Beine ${ci.beine}` : 'noch keiner'}
+TAGESURTEIL (Engine): ${v ? `${v.word} (${v.score}) — ${v.action}` : '—'}
+BELASTUNG: ${tl ? `CTL ${tl.ctl} | ATL ${tl.atl} | TSB ${tl.tsb}` : '—'}
+HEUTE GEPLANT: ${planToday ? planToday.main_text + ' — ' + (planToday.detail_text || '').slice(0, 140) : 'nichts'}
+LETZTE EINHEITEN:
+${recent || '—'}
+KONTEXT: ${S.ctx}
+AUTOPILOT: ${S.intel ? (S.intel.alerts.map(a => a.t).join('; ') || 'keine Warnungen') + ` | Rampe ${S.intel.ramp?.toFixed(1) ?? '—'}/Wo | Monotonie ${S.intel.monotony?.toFixed(1) ?? '—'} | Renntag-Prognose TSB ${S.intel.raceTsb?.toFixed(0) ?? '—'}` : 'läuft noch'}`;
+}
+
+function coachingPhase() {
+  const hour = new Date().getHours();
+  const trainedToday = S._trainedToday || S.workouts.some(w => w.workout_date === S.today);
+  if (trainedToday) return 'post';
+  if (hour >= 18) return 'abend';
+  return 'morgen';
+}
+
+function coachThreadKey() { return `ech_coach_thread_${S.today}_${coachingPhase()}`; }
+async function genCoaching(force) {
+  const pill = document.getElementById('phasePill');
+  const thread = document.getElementById('coachThread');
+  if (!CLAUDE_KEY) { thread.innerHTML = '<div class="coach-msg empty">API Key fehlt — in den Einstellungen ⚙ hinterlegen.</div>'; return; }
+  try { const tw = await sb('workouts', `?workout_date=eq.${S.today}&sport=neq.ebikeride&select=id&limit=1`); S._trainedToday = tw.length > 0; } catch (e) {}
+  const phase = coachingPhase();
+  pill.textContent = { morgen: '🌅 Morgen', post: '🏁 Post-Training', abend: '🌙 Abend' }[phase];
+  S.coachThread = [];
+  const tKey = coachThreadKey();
+  if (!force) {
+    const saved = localStorage.getItem(tKey);
+    if (saved) { try { S.coachThread = JSON.parse(saved); renderCoachThread(); return; } catch (e) {} }
+  }
+  Object.keys(localStorage).forEach(k => { if ((k.startsWith('ech_coach_thread_') || k.startsWith('ech_coach_') || k.startsWith('max2_coach_')) && k !== tKey) localStorage.removeItem(k); });
+
+  thread.innerHTML = '<div class="coach-msg"><div class="loading"><div class="spinner"></div> ECHELON denkt…</div></div>';
+  const formats = {
+    morgen: 'Format (max 120 Wörter, kein Markdown außer **fett** für Labels):\n**Lage:** [1 Satz Einordnung von Check-in + Urteil]\n**Heute:** [2 Sätze — Einheit konkret angehen, mit Zahlen]\n**Achte auf:** [1 taktischer Punkt aus den Regeln]\n**Essen:** [1 konkreter Satz nach Protokoll]',
+    post: 'Florian hat heute trainiert. Format (max 100 Wörter):\n**Einheit:** [Bewertung mit Zahlen]\n**Jetzt:** [Konkret in den nächsten 2h: essen, regenerieren]\n**Morgen:** [1 Satz Ausblick]',
+    abend: 'Abend, kein Training heute. Format (max 90 Wörter):\n**Heute:** [1 Satz Einordnung]\n**Morgen:** [Was kommt, wie vorbereiten]\n**Heute Abend:** [Schlaf/Essen konkret]'
+  };
+  try {
+    const txt = await claude(buildSystemPrompt(), [{ role: 'user', content: liveContext() + '\n\n' + formats[phase] }], MODEL_FAST, 500);
+    S.coachThread = [{ role: 'assistant', content: txt }];
+    localStorage.setItem(tKey, JSON.stringify(S.coachThread));
+    renderCoachThread();
+  } catch (e) { thread.innerHTML = `<div class="coach-msg empty">Fehler: ${esc(e.message)}</div>`; }
+}
+function renderCoachThread() {
+  const thread = document.getElementById('coachThread');
+  thread.innerHTML = S.coachThread.map(m =>
+    `<div class="coach-turn ${m.role === 'user' ? 'u' : 'a'}">${m.role === 'user' ? esc(m.content) : fmt(m.content)}</div>`).join('');
+}
+async function sendCoachReply() {
+  const input = document.getElementById('coachReplyInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!CLAUDE_KEY) { toast('API Key fehlt — ⚙'); return; }
+  input.value = ''; autoGrow(input);
+  if (!S.coachThread || !S.coachThread.length) S.coachThread = [];
+  S.coachThread.push({ role: 'user', content: text });
+  renderCoachThread();
+  const thread = document.getElementById('coachThread');
+  thread.insertAdjacentHTML('beforeend', '<div class="coach-turn a" id="coachPending"><div class="loading"><div class="spinner"></div></div></div>');
+  try {
+    const history = S.coachThread.map(m => ({ role: m.role, content: m.content }));
+    const reply = await claudeStream(buildSystemPrompt() + '\n\nLIVE-DATEN:\n' + chatContext(), history, MODEL_SMART, 700,
+      partial => { const p = document.getElementById('coachPending'); if (p) p.innerHTML = fmt(partial); });
+    document.getElementById('coachPending')?.remove();
+    S.coachThread.push({ role: 'assistant', content: reply });
+    localStorage.setItem(coachThreadKey(), JSON.stringify(S.coachThread));
+    renderCoachThread();
+  } catch (e) {
+    document.getElementById('coachPending')?.remove();
+    S.coachThread.push({ role: 'assistant', content: 'Fehler: ' + e.message });
+    renderCoachThread();
+  }
+}
+
+/* ================================================================
+
+/* ================================================================
+   ZIELE — Multi-Goal-System (Rad, Lauf, Kraft, Gewicht)
+================================================================ */
+const GOAL_ICONS = { race_bike: '🚴', race_run: '🏃', strength: '🏋️', weight: '⚖️', custom: '🎯' };
+async function loadGoals() {
+  try { S.goals = await sb('athlete_goals', '?status=eq.active&order=target_date.asc.nullslast'); }
+  catch (e) { S.goals = []; }
+  renderGoals(); updateRaceUI();
+}
+function nextRace() {
+  const r = (S.goals || []).find(g => (g.goal_type === 'race_bike' || g.goal_type === 'race_run') && g.target_date && g.target_date >= S.today);
+  return r ? { name: r.title, date: r.target_date, type: r.goal_type } : { name: K.race.name, date: K.race.datum, type: 'race_bike' };
+}
+function updateRaceUI() {
+  const nr = nextRace();
+  const days = Math.ceil((new Date(nr.date) - new Date(S.today)) / 86400000);
+  const short = nr.name.split(' ')[0].slice(0, 14);
+  document.getElementById('raceDays').textContent = days > 0 ? days : '🏁';
+  document.getElementById('raceDays2').textContent = days > 0 ? days : '🏁';
+  document.getElementById('raceLabel').textContent = 'Tage bis ' + short;
+  document.getElementById('raceTitle').textContent = nr.name.toUpperCase();
+  document.getElementById('raceDate').textContent = new Date(nr.date).toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  document.getElementById('playbookBtn').style.display = /ibbenb/i.test(nr.name) ? '' : 'none';
+}
+function renderGoals() {
+  const days = d => d ? Math.ceil((new Date(d) - new Date(S.today)) / 86400000) : null;
+  const html = (S.goals || []).map(g => {
+    const dd = days(g.target_date);
+    const plannable = ['race_run', 'race_bike', 'strength'].includes(g.goal_type);
+    return `<div class="wo-row">
+      <span class="date">${g.target_date ? g.target_date.slice(8) + '.' + g.target_date.slice(5, 7) + '.' : '—'}</span>
+      <span class="nm">${GOAL_ICONS[g.goal_type] || '🎯'} ${esc(g.title)} <span class="badge ${g.priority === 'A' ? 'pr' : 'ok'}">${g.priority}</span>
+        <div class="sub">${esc(g.target_value || '')}${dd != null && dd > 0 ? ' · in ' + dd + ' Tagen' : dd != null && dd <= 0 ? ' · fällig' : ''}</div></span>
+      <span style="display:flex;gap:5px;flex-shrink:0">
+        ${plannable ? `<button class="btn btn-ghost btn-sm" onclick="planBlockForGoal(${g.id})" title="Block planen">🧠</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="goalDone(${g.id})" title="Erledigt">✓</button>
+        <button class="btn btn-ghost btn-sm" onclick="goalDrop(${g.id})" title="Löschen">✕</button>
+      </span></div>`;
+  }).join('');
+  document.getElementById('goalList').innerHTML = html || '<div class="empty">Keine aktiven Ziele — lege eins an.</div>';
+  const kg = document.getElementById('kGoals');
+  if (kg) kg.innerHTML = (S.goals || []).map(g =>
+    `<div class="k-row"><span class="k">${GOAL_ICONS[g.goal_type] || '🎯'} ${g.target_date ? g.target_date.slice(8) + '.' + g.target_date.slice(5, 7) + '.' : 'offen'}</span><span class="v"><strong>${esc(g.title)}</strong> — ${esc(g.target_value || '')}<br><span style="color:var(--muted);font-size:12px">${esc(g.notes || '')}</span></span></div>`).join('') || '<div class="empty">Keine Ziele.</div>';
+}
+function toggleGoalForm() {
+  const f = document.getElementById('goalForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+async function addGoal() {
+  const title = document.getElementById('gTitle').value.trim();
+  if (!title) { toast('Titel fehlt'); return; }
+  const ok = await sbUpsert('athlete_goals', {
+    title, goal_type: document.getElementById('gType').value,
+    target_date: document.getElementById('gDate').value || null,
+    target_value: document.getElementById('gValue').value.trim() || null,
+    priority: 'A', status: 'active'
+  });
+  if (ok) {
+    toast('Ziel angelegt ✓ — ECHELON kennt es ab jetzt überall');
+    ['gTitle', 'gDate', 'gValue'].forEach(id => document.getElementById(id).value = '');
+    toggleGoalForm(); loadGoals();
+  } else toast('Fehler beim Anlegen');
+}
+async function goalDone(id) {
+  if (await sbPatch('athlete_goals', `id=eq.${id}`, { status: 'done' })) { toast('Ziel erreicht ✓ 🎉'); loadGoals(); }
+}
+async function goalDrop(id) {
+  if (!confirm('Ziel wirklich entfernen?')) return;
+  if (await sbPatch('athlete_goals', `id=eq.${id}`, { status: 'dropped' })) { toast('Ziel entfernt'); loadGoals(); }
+}
+
+/* ---------- Kombi-Block: EIN integrierter Plan für mehrere Ziele ---------- */
+function planKombiBlock() {
+  const plannable = (S.goals || []).filter(g => ['race_run', 'race_bike', 'strength', 'weight'].includes(g.goal_type));
+  if (plannable.length < 2) { toast('Mindestens 2 planbare Ziele nötig — lege welche an'); return; }
+  if (!CLAUDE_KEY) { toast('API Key fehlt — ⚙'); openSettings(); return; }
+  document.getElementById('goalModal').classList.add('show');
+  document.getElementById('goalModalTitle').textContent = 'Kombi-Block planen';
+  document.getElementById('goalApplyBtn').style.display = 'none';
+  const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
+  document.getElementById('goalModalContent').innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Wähle die Ziele — ECHELON baut EINEN integrierten Block der alle gleichzeitig bedient. Das erste angehakte A-Ziel strukturiert die Woche, der Rest fügt sich ein (Interferenz-Regeln aktiv).</div>
+    ${plannable.map(g => `<label style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(42,49,64,.5);cursor:pointer">
+      <input type="checkbox" class="kombiSel" value="${g.id}" checked style="width:auto">
+      <span>${GOAL_ICONS[g.goal_type]} <strong>${esc(g.title)}</strong> <span class="badge ${g.priority === 'A' ? 'pr' : 'ok'}">${g.priority}</span><br>
+      <span style="color:var(--muted);font-size:12px">${esc(g.target_value || '')}${g.target_date ? ' · bis ' + g.target_date : ''}</span></span>
+    </label>`).join('')}
+    <div class="ci-grid" style="grid-template-columns:1fr 1fr;margin-top:13px">
+      <div class="ci-field"><label>Blockstart</label><input type="date" id="kombiStart" value="${tomorrow}"></div>
+      <div class="ci-field"><label>Länge</label><select id="kombiLen"><option value="14">2 Wochen</option><option value="21" selected>3 Wochen</option></select></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:13px" onclick="genKombiPlan()">Block generieren</button>`;
+}
+async function genKombiPlan() {
+  const ids = [...document.querySelectorAll('.kombiSel:checked')].map(x => +x.value);
+  const goals = (S.goals || []).filter(g => ids.includes(g.id));
+  if (goals.length < 2) { toast('Mindestens 2 Ziele wählen'); return; }
+  const start = document.getElementById('kombiStart').value;
+  const len = +document.getElementById('kombiLen').value;
+  const el = document.getElementById('goalModalContent');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> ECHELON verzahnt ' + goals.length + ' Ziele…</div>';
+  const applyBtn = document.getElementById('goalApplyBtn');
+  applyBtn.style.display = ''; applyBtn.disabled = true;
+  try {
+    const sorted = [...goals].sort((a, b) => (a.priority || 'B').localeCompare(b.priority || 'B'));
+    const raw = await claude(buildSystemPrompt() + '\n\nLIVE-DATEN:\n' + chatContext(),
+      [{ role: 'user', content: `Plane EINEN integrierten Trainingsblock (${len} Tage ab ${start}) der ALLE folgenden Ziele gleichzeitig bedient. Wende die KOMBI-REGELN strikt an — das erste Ziel (höchste Priorität) strukturiert die Woche:
+
+${sorted.map((g, i) => `${i + 1}. [${g.priority}] ${g.title} (${g.goal_type}${g.target_date ? ', Zieldatum ' + g.target_date : ''}): ${g.target_value || ''}`).join('\n')}
+
+VORGABEN:
+- Lauf-Einheiten: Achilles-Protokoll strikt (max +10% Volumen/Woche, Z2 ≤148bpm, Qualität nur bei ≥2 Wochen grüner Sehne — aktuell: ${K.achilles.status}). VDOT ${K.athlete.vdot}.
+- Kraft-Tage: detail_text MUSS konkrete Progression enthalten (Sätze×Wdh×kg abgeleitet aus PRs: Bank 110kg 1RM, DL e1RM ~195kg). Bei Krafterhalt: 2×/Woche @80–85%, 3–4 Sätze.
+- SST/Intervalle Rad nur indoor. Intensität vormittags einplanen (Hinweis in detail_text).
+- Mo ist Ruhetag-Standard. Wochenstruktur über alle ${Math.round(len / 7)} Wochen progressiv.
+
+Antworte NUR mit JSON, keine Backticks:
+{"begruendung":"3-4 Sätze: wie die Ziele verzahnt sind und wer wo Vorrang hat","days":[{"plan_date":"YYYY-MM-DD","main_text":"...","detail_text":"konkret mit Zahlen","duration_min":45,"hf_target_lo":139,"hf_target_hi":155,"sport_types":["run"]}]}
+Jeden Tag ab ${start} belegen (Ruhetage: main_text "Ruhetag", duration 0, sport_types ["rest"]). Genau ${len} Einträge.` }],
+      MODEL_SMART, 4000);
+    const plan = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    if (!plan.days || !plan.days.length) throw new Error('Kein Plan erhalten');
+    plan.days = plan.days.slice(0, len);
+    S._goalPlan = { goal: { title: 'Kombi: ' + sorted.map(g => g.title).join(' + ') }, plan };
+    const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    el.innerHTML = `<div style="font-size:13px;color:var(--muted);margin-bottom:11px">${esc(plan.begruendung)}</div>` +
+      plan.days.map(d => `<div style="display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(42,49,64,.5)">
+        <span class="mono" style="color:var(--muted);width:74px;flex-shrink:0;font-size:11.5px">${days[new Date(d.plan_date).getDay()]} ${d.plan_date.slice(8)}.${d.plan_date.slice(5,7)}.</span>
+        <span><strong>${esc(d.main_text)}</strong>${d.duration_min ? " · " + d.duration_min + "'" : ''}<br><span style="color:var(--muted);font-size:11.5px">${esc((d.detail_text || '').slice(0, 100))}</span></span></div>`).join('') +
+      `<div style="font-size:12px;color:var(--amber);margin-top:11px">⚠ Übernehmen überschreibt den Plan von ${plan.days[0].plan_date} bis ${plan.days[plan.days.length - 1].plan_date}.</div>`;
+    applyBtn.disabled = false;
+  } catch (e) { el.innerHTML = `<span class="empty">Fehler: ${esc(e.message)}</span>`; applyBtn.style.display = 'none'; }
+}
+
+/* ---------- Block-Planer: generiert Trainingsblöcke pro Ziel ---------- */
+async function planBlockForGoal(id) {
+  const g = (S.goals || []).find(x => x.id === id);
+  if (!g) return;
+  if (!CLAUDE_KEY) { toast('API Key fehlt — ⚙'); openSettings(); return; }
+  const isRace = g.goal_type === 'race_run' || g.goal_type === 'race_bike';
+  document.getElementById('goalModal').classList.add('show');
+  document.getElementById('goalModalTitle').textContent = (isRace ? 'Block-Planung: ' : 'Zyklus-Planung: ') + g.title;
+  const el = document.getElementById('goalModalContent');
+  const applyBtn = document.getElementById('goalApplyBtn');
+  applyBtn.disabled = true; applyBtn.style.display = isRace ? '' : 'none';
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> ECHELON plant…</div>';
+
+  try {
+    if (isRace) {
+      // Lauf-/Rad-Event: konkrete Trainingstage als JSON → adaptive_plan
+      let start = prompt('Startdatum des Blocks (YYYY-MM-DD):', new Date(Date.now() + 86400000).toLocaleDateString('sv-SE'));
+      if (!start) { closeModal('goalModal'); return; }
+      const raw = await claude(buildSystemPrompt() + '\n\nLIVE-DATEN:\n' + chatContext(),
+        [{ role: 'user', content: `Plane die ersten 3 Wochen (max 21 Tage) eines Trainingsblocks für dieses Ziel:
+ZIEL: ${g.title} | Typ: ${g.goal_type} | Zieldatum: ${g.target_date || 'offen'} | Zielwert: ${g.target_value || '—'}
+BLOCKSTART: ${start}
+${g.goal_type === 'race_run' ? 'LAUF-REGELN: VDOT ' + K.athlete.vdot + ' (Peak 43.5). Achilles-Protokoll STRIKT: max +10% Volumen/Woche, Z2 ≤148bpm, Qualitätseinheiten erst wenn Achilles 2 Wochen grün. Rad-Z2 als ergänzendes Volumen nutzen. Kraft A/B (Di o. Mi + Fr o. Sa) beibehalten.' : 'RAD-REGELN: SST/Intervalle nur indoor, Long Rides outdoor, Kraft A/B beibehalten.'}
+Antworte NUR mit JSON, keine Backticks:
+{"begruendung":"2-3 Sätze Blocklogik","days":[{"plan_date":"YYYY-MM-DD","main_text":"...","detail_text":"konkret mit Zahlen","duration_min":45,"hf_target_lo":139,"hf_target_hi":155,"sport_types":["run"]}]}
+Jeden Tag von ${start} an belegen (Ruhetage als main_text "Ruhetag", duration 0, sport_types ["rest"]). hf_target null wenn irrelevant. Max 21 Einträge.` }],
+        MODEL_SMART, 3500);
+      const plan = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      if (!plan.days || !plan.days.length) throw new Error('Kein Plan erhalten');
+      plan.days = plan.days.slice(0, 21);
+      S._goalPlan = { goal: g, plan };
+      const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      el.innerHTML = `<div style="font-size:13px;color:var(--muted);margin-bottom:11px">${esc(plan.begruendung)}</div>` +
+        plan.days.map(d => `<div class="pc" style="display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(42,49,64,.5)">
+          <span class="mono" style="color:var(--muted);width:74px;flex-shrink:0;font-size:11.5px">${days[new Date(d.plan_date).getDay()]} ${d.plan_date.slice(8)}.${d.plan_date.slice(5,7)}.</span>
+          <span><strong>${esc(d.main_text)}</strong>${d.duration_min ? " · " + d.duration_min + "'" : ''}</span></div>`).join('') +
+        `<div style="font-size:12px;color:var(--amber);margin-top:11px">⚠ Übernehmen überschreibt bestehende Plan-Einträge im Zeitraum ${plan.days[0].plan_date} bis ${plan.days[plan.days.length-1].plan_date}.</div>`;
+      applyBtn.disabled = false;
+    } else {
+      // Kraftziel: Progressions-Zyklus als Wissen → coaching_insights
+      const txt = await claude(buildSystemPrompt(),
+        [{ role: 'user', content: `Erstelle einen konkreten Progressions-Zyklus für dieses Kraftziel (max 220 Wörter):
+ZIEL: ${g.title} | Zielwert: ${g.target_value} | Zieldatum: ${g.target_date || 'offen'}
+Aktuelle PRs: Bank 110kg (1RM), Trap Bar DL 2×2@182kg RPE 9.5 (e1RM ~195kg).
+Rahmen: Kraft A (DL-Fokus) + Kraft B (Bank-Fokus) je 1×/Woche, parallel zum Ausdauertraining. Autoregulation: bei Readiness <70 → −10%, bei schweren Beinen kein Maximalversuch.
+Format: **Zyklus-Logik:** [2 Sätze] dann Wochenübersicht als Liste (W1: … W2: …) mit konkreten Sätzen×Wdh×kg, dann **PR-Versuch:** [wann und unter welchen Bedingungen].` }],
+        MODEL_SMART, 800);
+      S._goalCycle = { goal: g, txt };
+      el.innerHTML = md(txt) + `<div style="display:flex;gap:9px;margin-top:14px">
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="saveGoalCycle()">Als Trainingswissen speichern</button></div>`;
+    }
+  } catch (e) { el.innerHTML = `<span class="empty">Fehler: ${esc(e.message)}</span>`; }
+}
+async function applyGoalPlan() {
+  const gp = S._goalPlan;
+  if (!gp) return;
+  const dates = gp.plan.days.map(d => d.plan_date).sort();
+  const lo = dates[0], hi = dates[dates.length - 1];
+  if (!confirm(`Plan von ${lo} bis ${hi} überschreiben (${gp.plan.days.length} Tage)?`)) return;
+  await sbDelete('adaptive_plan', `plan_date=gte.${lo}&plan_date=lte.${hi}`);
+  const rows = gp.plan.days.map(d => ({
+    plan_date: d.plan_date, main_text: d.main_text, detail_text: d.detail_text || '',
+    duration_min: d.duration_min || 0, sport_types: d.sport_types || ['ride'],
+    hf_target_lo: d.hf_target_lo ?? null, hf_target_hi: d.hf_target_hi ?? null,
+    coaching_rationale: `ECHELON Block-Planer für Ziel: ${gp.goal.title}`
+  }));
+  const ok = await sbUpsert('adaptive_plan', rows);
+  closeModal('goalModal');
+  toast(ok ? `${rows.length} Tage geplant ✓` : 'Fehler beim Schreiben');
+  if (ok) loadPlan();
+}
+async function saveGoalCycle() {
+  const gc = S._goalCycle;
+  if (!gc) return;
+  const ok = await sbUpsert('coaching_insights', {
+    title: `Kraft-Zyklus: ${gc.goal.title}`,
+    content: gc.txt, category: 'protokoll', audience: 'both',
+    source: 'echelon_goalplanner', valid_from: S.today
+  });
+  closeModal('goalModal');
+  toast(ok ? 'Zyklus gespeichert ✓ — fließt ins Tagescoaching ein' : 'Fehler');
+}
+
+/* ================================================================
+   KRAFT-BLÖCKE — Max-Wert eintragen, nächster Block neu berechnen
+================================================================ */
+async function renderStrengthBlocks() {
+  const el = document.getElementById('strengthBlocks');
+  if (!el) return;
+  try {
+    const rows = await sb('adaptive_plan', `?plan_date=gte.${S.today}&or=(main_text.ilike.*Kraft A*,main_text.ilike.*Kraft B*)&order=plan_date.asc&limit=8&select=plan_date,main_text,detail_text`);
+    if (!rows.length) { el.innerHTML = '<div class="empty">Keine Kraft-Einheiten geplant.</div>'; return; }
+    const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    el.innerHTML = rows.map(r => {
+      const m = (r.detail_text || '').match(/(\d+×\d+ @\d+kg|Top-Single @\d+kg)/);
+      const isTest = /TEST-TAG/i.test(r.detail_text || '');
+      return `<div class="wo-row">
+        <span class="date">${days[new Date(r.plan_date).getDay()]} ${r.plan_date.slice(8)}.${r.plan_date.slice(5,7)}.</span>
+        <span class="nm">${esc(r.main_text)} ${isTest ? '<span class="badge pr">TEST</span>' : ''}<div class="sub">${m ? esc(m[0]) : ''}</div></span>
+      </div>`;
+    }).join('');
+  } catch (e) { el.innerHTML = '<div class="empty">Fehler beim Laden.</div>'; }
+  const rf = document.getElementById('recalcFrom');
+  if (rf && !rf.value) { const d = new Date(Date.now()+86400000); rf.value = d.toLocaleDateString('sv-SE'); }
+}
+
+// Progressionslogik: 4-Wochen-Block ab dem gewählten Datum, prozentual vom neuen Max
+function strengthSchedule(maxDL, maxBank) {
+  // W1 88%/87%, W2 93%/92%, W3 96%/95%, W4 Test (Max +2-3%)
+  const r = v => Math.round(v/2.5)*2.5;
+  return [
+    { w:1, dl:`3×3 @${r(maxDL*0.88)}kg`, dlBack:`2×5 @${r(maxDL*0.68)}kg`, bank:`4×3 @${r(maxBank*0.87)}kg`, bankBack:`2×5 @${r(maxBank*0.70)}kg` },
+    { w:2, dl:`3×2 @${r(maxDL*0.93)}kg`, dlBack:`2×5 @${r(maxDL*0.72)}kg`, bank:`4×2 @${r(maxBank*0.92)}kg`, bankBack:`2×5 @${r(maxBank*0.74)}kg` },
+    { w:3, dl:`2×2 @${r(maxDL*0.96)}kg`, dlBack:`2×4 @${r(maxDL*0.75)}kg`, bank:`3×3 @${r(maxBank*0.95)}kg`, bankBack:`2×5 @${r(maxBank*0.76)}kg` },
+    { w:4, dl:`TEST-TAG: Top-Single @${r(maxDL*1.025)}kg (nur bei Readiness ≥70 und explosiven Aufwärmsätzen, sonst 2×2 @${r(maxDL*0.95)}kg)`, dlBack:`2×3 @${r(maxDL*0.78)}kg`,
+      bank:`TEST-TAG: Top-Single @${r(maxBank*1.03)}kg (nur bei gutem Check-In, sonst 3×2 @${r(maxBank*0.94)}kg)`, bankBack:`2×4 @${r(maxBank*0.78)}kg` }
+  ];
+}
+
+async function recalcStrength() {
+  const maxDL = parseFloat(document.getElementById('newDL').value);
+  const maxBank = parseFloat(document.getElementById('newBank').value);
+  const from = document.getElementById('recalcFrom').value;
+  if (!maxDL || !maxBank || !from) { toast('Beide Max-Werte und Startdatum angeben'); return; }
+  const sched = strengthSchedule(maxDL, maxBank);
+  const box = document.getElementById('recalcPreview');
+  S._strengthPlan = { maxDL, maxBank, from, sched };
+  box.innerHTML = `<div class="proposal">
+    <div class="ph">Neuer 4-Wochen-Block ab ${from.slice(8)}.${from.slice(5,7)}.</div>
+    <div class="why">Berechnet aus Max DL ${maxDL}kg / Bank ${maxBank}kg. Woche 4 ist wieder Test-Tag — dann erneut eintragen für den Folgeblock.</div>
+    ${sched.map(s => `<div class="pc"><span class="pd">Woche ${s.w}</span><span><strong>DL:</strong> ${esc(s.dl.split(' (')[0])}<br><strong>Bank:</strong> ${esc(s.bank.split(' (')[0])}</span></div>`).join('')}
+    <div style="display:flex;gap:9px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="applyStrengthPlan()">In Plan übernehmen</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('recalcPreview').innerHTML=''">Verwerfen</button>
+    </div></div>`;
+}
+
+async function applyStrengthPlan() {
+  const sp = S._strengthPlan;
+  if (!sp) return;
+  const start = new Date(sp.from);
+  let n = 0;
+  for (let w = 0; w < 4; w++) {
+    const s = sp.sched[w];
+    // Kraft B = Montag, Kraft A = Mittwoch (aktuelles Wochenschema)
+    for (const [dowTarget, type] of [[1,'B'],[3,'A']]) {
+      const d = new Date(start);
+      const shift = (dowTarget - d.getDay() + 7) % 7;
+      d.setDate(d.getDate() + shift + w*7);
+      const dateStr = d.toLocaleDateString('sv-SE');
+      const body = type === 'A'
+        ? { detail_text: `Trap Bar DL: Aufwärm, dann ${s.dl}. Backoff ${s.dlBack}. // RDL 3×8 (Kette hinten). // Split Squats 3×8/Bein. // Wadenheben exzentrisch 3×12 (Achilles-Prophylaxe). // Plank 3×45s. // Danach Z2 Rad, HF 120-155bpm.`,
+            coaching_rationale: `Neu berechnet aus Max ${sp.maxDL}kg (Block-Update ${S.today}).` }
+        : { detail_text: `Bankdrücken: Aufwärm, dann ${s.bank}. Backoff ${s.bankBack}. // Pendlay Row 4×6. // Schulterdrücken 3×8. // Trizeps 3×10. // Pallof Press 3×10/Seite. // Danach Z2 Rad, HF 139-155bpm.`,
+            coaching_rationale: `Neu berechnet aus Max ${sp.maxBank}kg (Block-Update ${S.today}).` };
+      if (await sbPatch('adaptive_plan', `plan_date=eq.${dateStr}`, body)) n++;
+    }
+  }
+  document.getElementById('recalcPreview').innerHTML = '';
+  ['newDL','newBank'].forEach(id => document.getElementById(id).value = '');
+  toast(`${n} Kraft-Einheiten aktualisiert ✓`);
+  renderStrengthBlocks(); loadPlan();
+}
+
+/* ================================================================
+   AUTOPILOT — Elite-Intelligenz
+   Läuft bei jedem Start: Metriken, Frühwarnung, Auto-Analyse.
+================================================================ */
+function estTss(p) {
+  if (!p || /ruhetag/i.test(p.main_text || '')) return 0;
+  const d = p.duration_min || 60;
+  const t = ((p.main_text || '') + ' ' + (p.detail_text || '')).toLowerCase();
+  let f = 0.55;
+  if (/vo2|hiit|race|generalprobe|rtf|240/.test(t)) f = 0.75;
+  else if (/sst|sweetspot/.test(t)) f = 0.8;
+  else if (/kraft/.test(t)) f = 0.3;
+  else if (/z1|einrollen|strides/.test(t)) f = 0.35;
+  return Math.round(d * f);
+}
+function linSlope(vals) {
+  const n = vals.length; if (n < 3) return 0;
+  const xm = (n - 1) / 2, ym = vals.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  vals.forEach((v, i) => { num += (i - xm) * (v - ym); den += (i - xm) ** 2; });
+  return den ? num / den : 0;
+}
+async function runAutopilot() {
+  try {
+    const since10 = new Date(Date.now() - 10 * 86400000).toLocaleDateString('sv-SE');
+    const [dailyTss, futurePlan, lastCi] = await Promise.all([
+      sb('workouts', `?workout_date=gte.${since10}&sport=neq.ebikeride&select=workout_date,tss`),
+      sb('adaptive_plan', `?plan_date=gt.${S.today}&plan_date=lte.${nextRace().date}&select=plan_date,main_text,detail_text,duration_min&order=plan_date.asc`),
+      sb('daily_checkin', `?order=checkin_date.desc&limit=1&select=achilles,checkin_date`)
+    ]);
+    const intel = { alerts: [], metrics: [] };
+
+    // --- Tages-TSS 7d (inkl. Null-Tage) für Foster Monotonie/Strain ---
+    const byDay = {};
+    for (let i = 6; i >= 0; i--) byDay[new Date(Date.now() - i * 86400000).toLocaleDateString('sv-SE')] = 0;
+    dailyTss.forEach(w => { if (w.workout_date in byDay) byDay[w.workout_date] += (w.tss || 0); });
+    const arr = Object.values(byDay);
+    const mean = arr.reduce((a, b) => a + b, 0) / 7;
+    const sd = Math.sqrt(arr.reduce((a, b) => a + (b - mean) ** 2, 0) / 7) || 1;
+    const monotony = mean / sd;
+    const weekLoad = arr.reduce((a, b) => a + b, 0);
+    const strain = Math.round(weekLoad * monotony);
+    intel.monotony = monotony; intel.strain = strain; intel.weekLoad = weekLoad;
+
+    // --- CTL/ATL auf HEUTE weiterrollen (Webhook kann hinterherhinken) ---
+    if (S.load.length) {
+      let lc = +S.load[S.load.length - 1].ctl, la = +S.load[S.load.length - 1].atl;
+      const lastDate = S.load[S.load.length - 1].load_date;
+      let d = new Date(lastDate);
+      const todayD = new Date(S.today);
+      while (d < todayD) {
+        d = new Date(d.getTime() + 86400000);
+        const tss = byDay[d.toLocaleDateString('sv-SE')] || 0;
+        lc = lc * Math.exp(-1 / 42) + tss * (1 - Math.exp(-1 / 42));
+        la = la * Math.exp(-1 / 7) + tss * (1 - Math.exp(-1 / 7));
+      }
+      intel.ctlToday = lc; intel.atlToday = la; intel.tsbToday = lc - la;
+      S.tsbToday = intel.tsbToday;
+      const staleDays = Math.round((todayD - new Date(lastDate)) / 86400000);
+      if (staleDays > 2) intel.alerts.push({ s: 'warn', t: `Belastungsdaten ${staleDays} Tage alt (letzter Eintrag ${lastDate}) — Strava-Webhook prüfen. TSB wurde auf heute hochgerechnet` });
+    }
+
+    // --- CTL-Rampe (7d) ---
+    let ramp = null;
+    if (S.load.length >= 8) {
+      ramp = +S.load[S.load.length - 1].ctl - +S.load[S.load.length - 8].ctl;
+      intel.ramp = ramp;
+    }
+
+    // --- Effizienz-Trend Watt/HF — NUR vergleichbare Ausdauer-Einheiten ---
+    // Filter: ≥40min, HF 125–170 (Z2/Tempo-Bereich), ≥120W. Verhindert Artefakte
+    // durch Vergleich von Z1-Einrollen gegen SST o.ä.
+    const rides = S.workouts.filter(w =>
+      /ride/i.test(w.sport || '') && w.avg_watts >= 120 && w.avg_hr >= 125 && w.avg_hr <= 170 &&
+      (w.duration_min || 0) >= 40).reverse();
+    if (rides.length >= 4) {
+      const ratios = rides.map(w => w.avg_watts / w.avg_hr);
+      const first = ratios.slice(0, 2).reduce((a, b) => a + b) / 2;
+      const last = ratios.slice(-2).reduce((a, b) => a + b) / 2;
+      const trend = ((last - first) / first) * 100;
+      if (Math.abs(trend) <= 30) intel.effTrend = trend; // >30% = Datenartefakt, unterdrücken
+    }
+
+    // --- HRV-Trend (letzte 7 Werte) ---
+    const hrv7 = S.hrvHist.slice(-7).map(d => d.hrv_ms).filter(v => v != null);
+    intel.hrvSlope = linSlope(hrv7);
+    intel.hrvLast = hrv7[hrv7.length - 1];
+
+    // --- Renntag-Projektion (CTL/ATL exponentiell mit geschätzten Plan-TSS) ---
+    if (S.load.length) {
+      let ctl = intel.ctlToday ?? +S.load[S.load.length - 1].ctl;
+      let atl = intel.atlToday ?? +S.load[S.load.length - 1].atl;
+      const planMap = {};
+      futurePlan.forEach(p => { planMap[p.plan_date] = (planMap[p.plan_date] || 0) + estTss(p); });
+      let d = new Date(S.today);
+      const race = new Date(nextRace().date);
+      while (d < race) {
+        d = new Date(d.getTime() + 86400000);
+        const tss = planMap[d.toLocaleDateString('sv-SE')] || 0;
+        ctl = ctl * Math.exp(-1 / 42) + tss * (1 - Math.exp(-1 / 42));
+        atl = atl * Math.exp(-1 / 7) + tss * (1 - Math.exp(-1 / 7));
+      }
+      intel.raceCtl = ctl; intel.raceTsb = ctl - atl;
+    }
+
+    // ============ FRÜHWARNUNGEN (deterministisch) ============
+    const alarm = S.ctx === 'urlaub' ? K.hrv.alarmUrlaub : K.hrv.alarmAlltag;
+    if (intel.hrvSlope < -1.2 && intel.hrvLast && intel.hrvLast < alarm + 3)
+      intel.alerts.push({ s: 'crit', t: `HRV fällt seit Tagen (${intel.hrvSlope.toFixed(1)}ms/Tag) Richtung Alarm — Erholung priorisieren bevor der Einbruch kommt` });
+    else if (intel.hrvSlope > 1.2)
+      intel.alerts.push({ s: 'pos', t: `HRV steigt (${'+' + intel.hrvSlope.toFixed(1)}ms/Tag) — Adaptation läuft` });
+
+    if (ramp != null && ramp > 8)
+      intel.alerts.push({ s: 'crit', t: `CTL-Rampe ${ramp.toFixed(1)}/Woche — über sicherer Grenze (5–8). Verletzungs- und Einbruchrisiko steigt exponentiell` });
+    else if (ramp != null && ramp > 5)
+      intel.alerts.push({ s: 'warn', t: `CTL-Rampe ${ramp.toFixed(1)}/Woche — obere Grenze, nicht weiter steigern` });
+
+    if (monotony > 2 && weekLoad > 250)
+      intel.alerts.push({ s: 'warn', t: `Monotonie ${monotony.toFixed(1)} (Foster) — Belastung zu gleichförmig. Harte Tage härter, leichte leichter` });
+    if (strain > 900)
+      intel.alerts.push({ s: 'warn', t: `Strain ${strain} — hohe Wochenbeanspruchung, Infekt-Anfälligkeit beachten` });
+
+    if (intel.effTrend != null) {
+      if (intel.effTrend > 8)
+        intel.alerts.push({ s: 'pos', t: `Watt/HF-Effizienz +${intel.effTrend.toFixed(0)}% — FTP-Test erwägen, Zonen könnten zu niedrig sein` });
+      else if (intel.effTrend < -6)
+        intel.alerts.push({ s: 'warn', t: `Watt/HF-Effizienz ${intel.effTrend.toFixed(0)}% — Ermüdung oder Hitze. Bei anhaltendem Trend: Erholungsblock` });
+    }
+
+    const achilles = lastCi[0]?.achilles || K.achilles.status;
+    if (achilles !== 'green') {
+      const runsPlanned = futurePlan.filter(p => /lauf|run/i.test(p.main_text || '') && new Date(p.plan_date) - new Date(S.today) < 8 * 86400000);
+      if (runsPlanned.length)
+        intel.alerts.push({ s: 'warn', t: `Achilles ${achilles === 'red' ? 'ROT' : 'GELB'} + ${runsPlanned.length} Lauf(e) diese Woche geplant — Testprotokoll beachten (≤4km, HF ≤145)` });
+    }
+
+    const nrA = nextRace();
+    const daysToRace = Math.ceil((new Date(nrA.date) - new Date(S.today)) / 86400000);
+    if (intel.raceTsb != null && daysToRace > 0 && daysToRace < 40) {
+      if (intel.raceTsb < 0)
+        intel.alerts.push({ s: 'crit', t: `Renntag-Prognose TSB ${intel.raceTsb.toFixed(0)} — Taper reicht nicht (Ziel: +10 bis +20)`, act: 'actionTaperFix', actLabel: '🧠 Taper korrigieren' });
+      else if (intel.raceTsb < 8)
+        intel.alerts.push({ s: 'warn', t: `Renntag-Prognose TSB +${intel.raceTsb.toFixed(0)} — knapp (Ziel: +10 bis +20)`, act: 'actionTaperFix', actLabel: '🧠 Taper korrigieren' });
+      else
+        intel.alerts.push({ s: 'pos', t: `Renntag-Prognose TSB +${intel.raceTsb.toFixed(0)} bei CTL ${intel.raceCtl.toFixed(0)} — Kurs stimmt` });
+    }
+
+    const sleep3 = (S.ci7 || []).slice(-3).map(x => x.sleep_hours).filter(v => v != null);
+    if (sleep3.length === 3 && sleep3.reduce((a, b) => a + +b, 0) / 3 < 6.5)
+      intel.alerts.push({ s: 'warn', t: `Schlaf-Ø der letzten 3 Nächte unter 6,5h — größter einzelner Erholungshebel gerade` });
+
+    S.intel = intel;
+    renderIntel(intel);
+    renderRaceProj(intel, daysToRace);
+    autoAnalyzeWorkouts();
+  } catch (e) { console.warn('Autopilot:', e); }
+}
+function renderIntel(intel) {
+  const card = document.getElementById('lagebildCard');
+  card.style.display = 'block';
+  document.getElementById('intelStamp').textContent = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const m = [];
+  if (intel.ramp != null) m.push({ v: (intel.ramp > 0 ? '+' : '') + intel.ramp.toFixed(1), l: 'CTL-Rampe /Wo', c: intel.ramp > 8 ? 'neg' : intel.ramp > 5 ? 'warn' : 'pos' });
+  m.push({ v: intel.monotony.toFixed(1), l: 'Monotonie', c: intel.monotony > 2 ? 'warn' : 'pos' });
+  m.push({ v: intel.strain, l: 'Strain 7d', c: intel.strain > 900 ? 'warn' : 'pos' });
+  if (intel.effTrend != null) m.push({ v: (intel.effTrend > 0 ? '+' : '') + intel.effTrend.toFixed(0) + '%', l: 'Watt/HF-Trend', c: intel.effTrend > 3 ? 'pos' : intel.effTrend < -6 ? 'neg' : 'warn' });
+  document.getElementById('intelMetrics').innerHTML = m.map(x => `<div class="im ${x.c}"><div class="v">${x.v}</div><div class="l">${x.l}</div></div>`).join('');
+  document.getElementById('intelAlerts').innerHTML = intel.alerts.length
+    ? intel.alerts.map(a => `<div class="alert-row a-${a.s}"><span class="dot"></span><span style="flex:1">${a.t}</span>${a.act ? `<button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="${a.act}()">${a.actLabel || 'Beheben'}</button>` : ''}</div>`).join('')
+    : '<div class="empty">Keine Auffälligkeiten — alle Systeme im grünen Bereich.</div>';
+}
+function renderRaceProj(intel, days) {
+  if (intel.raceCtl == null || days <= 0) return;
+  const el = document.getElementById('raceProj');
+  el.style.display = 'flex';
+  const tsbOk = intel.raceTsb >= 8;
+  el.innerHTML = `
+    <div class="rp"><div class="v" style="color:var(--green)">${intel.raceCtl.toFixed(0)}</div><div class="l">CTL Prognose</div></div>
+    <div class="rp"><div class="v" style="color:${tsbOk ? 'var(--green)' : 'var(--amber)'}">${intel.raceTsb > 0 ? '+' : ''}${intel.raceTsb.toFixed(0)}</div><div class="l">TSB Prognose</div></div>
+    <div class="rp" style="flex:1;align-self:center;font-size:12px;color:var(--muted)">Hochrechnung aus dem aktuellen Plan · Ziel-TSB am Start: +10 bis +20</div>`;
+}
+async function autoAnalyzeWorkouts() {
+  if (!CLAUDE_KEY) return;
+  const todo = S.workouts.filter(w => !w.coaching_analysis && w.id).slice(0, 2);
+  for (const w of todo) {
+    try {
+      const planDay = await sb('adaptive_plan', `?plan_date=eq.${w.workout_date}&limit=1&select=main_text,detail_text`);
+      const txt = await claude(buildSystemPrompt(),
+        [{ role: 'user', content: `Analysiere diese Einheit in 3–4 Sätzen (mit Zahlen, ehrlich, Plan-Soll vs. Ist):\nEinheit: ${w.name} | ${w.workout_date} | ${w.duration_min || '—'}min | TSS ${w.tss ?? '—'} | ${w.avg_watts ? 'Ø' + w.avg_watts + 'W' : ''} ${w.avg_hr ? 'Ø' + w.avg_hr + 'bpm' : ''}\nGeplant war: ${planDay[0] ? planDay[0].main_text + ' — ' + (planDay[0].detail_text || '').slice(0, 120) : 'nichts'}` }],
+        MODEL_FAST, 300);
+      await sbPatch('workouts', `id=eq.${w.id}`, { coaching_analysis: 'Autopilot: ' + txt });
+      w.coaching_analysis = txt;
+    } catch (e) { break; }
+  }
+}
+
+/* ================================================================
+   TAPER-AUTOKORREKTUR — Plan bis zum Event, selbst-verifiziert
+   Das System rechnet seinen eigenen Vorschlag nach (Ziel-TSB +10..+20)
+   und korrigiert sich bei Verfehlung einmal selbst.
+================================================================ */
+function projectDaysTsb(days) {
+  const map = {};
+  days.forEach(d => { map[d.plan_date] = (map[d.plan_date] || 0) + estTss(d); });
+  let ctl = S.intel?.ctlToday ?? (S.load.length ? +S.load[S.load.length - 1].ctl : 45);
+  let atl = S.intel?.atlToday ?? (S.load.length ? +S.load[S.load.length - 1].atl : 45);
+  let d = new Date(S.today);
+  const race = new Date(nextRace().date);
+  while (d < race) {
+    d = new Date(d.getTime() + 86400000);
+    const tss = map[d.toLocaleDateString('sv-SE')] || 0;
+    ctl = ctl * Math.exp(-1 / 42) + tss * (1 - Math.exp(-1 / 42));
+    atl = atl * Math.exp(-1 / 7) + tss * (1 - Math.exp(-1 / 7));
+  }
+  return { ctl, tsb: ctl - atl };
+}
+async function actionTaperFix() {
+  if (!CLAUDE_KEY) { toast('API Key fehlt — ⚙'); openSettings(); return; }
+  const nr = nextRace();
+  const start = new Date(new Date(S.today).getTime() + 86400000).toLocaleDateString('sv-SE');
+  const end = new Date(new Date(nr.date).getTime() - 86400000).toLocaleDateString('sv-SE'); // Renntag bleibt unangetastet
+  if (start > end) { toast('Rennen ist morgen — nichts mehr zu korrigieren'); return; }
+  document.getElementById('goalModal').classList.add('show');
+  document.getElementById('goalModalTitle').textContent = 'Taper-Korrektur: ' + nr.name;
+  const applyBtn = document.getElementById('goalApplyBtn');
+  applyBtn.style.display = ''; applyBtn.disabled = true;
+  applyBtn.onclick = applyTaperFix;
+  const el = document.getElementById('goalModalContent');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> ECHELON rechnet den Taper neu…</div>';
+  try {
+    const currentPlan = await sb('adaptive_plan', `?plan_date=gte.${start}&plan_date=lte.${end}&order=plan_date.asc&select=plan_date,main_text,detail_text,duration_min`);
+    const basePrompt = `AUFGABE: Korrigiere den Trainingsplan von ${start} bis ${end} (Tag vor ${nr.name} am ${nr.date}) so, dass die TSB-Prognose am Renntag im Zielfenster +10 bis +20 landet.
+
+AUSGANGSLAGE: CTL heute ${(S.intel?.ctlToday ?? 0).toFixed(1)} | ATL heute ${(S.intel?.atlToday ?? 0).toFixed(1)} | Prognose mit aktuellem Plan: TSB ${(S.intel?.raceTsb ?? 0).toFixed(0)}.
+
+AKTUELLER PLAN im Zeitraum:
+${currentPlan.map(p => `${p.plan_date}: ${p.main_text}${p.duration_min ? ' (' + p.duration_min + "')" : ''}`).join('\n') || '— leer —'}
+
+TAPER-PRINZIPIEN: Volumen deutlich reduzieren (CTL darf leicht fallen — Frische schlägt Fitness), kurze Intensitäts-Erinnerungen behalten (Strides/Antritte statt Blöcke), Generalprobe kürzen statt streichen wenn vorhanden, letzte 3 Tage fast nichts, Kraft nur als Aktivierung. Alle Konstitutions-Regeln gelten (kein SST outdoor, Intensität vormittags, Achilles-Protokoll).
+
+Antworte NUR mit JSON, keine Backticks:
+{"begruendung":"2-3 Sätze","days":[{"plan_date":"YYYY-MM-DD","main_text":"...","detail_text":"konkret","duration_min":40,"hf_target_lo":139,"hf_target_hi":155,"sport_types":["ride"]}]}
+JEDEN Tag von ${start} bis ${end} belegen (Ruhetage: "Ruhetag", duration 0, ["rest"]).`;
+
+    let plan = null, proj = null, attempts = 0;
+    let feedback = '';
+    while (attempts < 2) {
+      attempts++;
+      const raw = await claude(buildSystemPrompt() + '\n\nLIVE-DATEN:\n' + chatContext(),
+        [{ role: 'user', content: basePrompt + feedback }], MODEL_SMART, 4000);
+      plan = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      if (!plan.days || !plan.days.length) throw new Error('Kein Plan erhalten');
+      // Lücken füllen: jeder Tag im Zeitraum muss belegt sein (Delete+Insert-Sicherheit)
+      const have = new Set(plan.days.map(d => d.plan_date));
+      let cur = new Date(start);
+      while (cur <= new Date(end)) {
+        const k = cur.toLocaleDateString('sv-SE');
+        if (!have.has(k)) plan.days.push({ plan_date: k, main_text: 'Ruhetag', detail_text: 'Taper — Erholung.', duration_min: 0, sport_types: ['rest'], hf_target_lo: null, hf_target_hi: null });
+        cur = new Date(cur.getTime() + 86400000);
+      }
+      plan.days.sort((a, b) => a.plan_date.localeCompare(b.plan_date));
+      // SELBST-VERIFIKATION: Vorschlag nachrechnen
+      proj = projectDaysTsb(plan.days);
+      if (proj.tsb >= 8 && proj.tsb <= 22) break;
+      feedback = `\n\nKORREKTUR NÖTIG: Dein letzter Vorschlag ergibt nachgerechnet TSB ${proj.tsb.toFixed(0)} am Renntag — ${proj.tsb < 8 ? 'zu wenig Erholung, Volumen weiter reduzieren' : 'zu viel Erholung, etwas mehr Reiz lassen'}. Ziel: +10 bis +20.`;
+    }
+    S._goalPlan = { goal: { title: 'Taper-Korrektur ' + nr.name }, plan };
+    const inRange = proj.tsb >= 8 && proj.tsb <= 22;
+    const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    el.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px;padding:11px;background:var(--surface2);border-radius:10px">
+        <div><div class="mono" style="font-size:22px;font-weight:700;color:${inRange ? 'var(--green)' : 'var(--amber)'}">${proj.tsb > 0 ? '+' : ''}${proj.tsb.toFixed(0)}</div>
+        <div style="font-size:9.5px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase">TSB Renntag · geprüft</div></div>
+        <div style="font-size:12.5px;color:var(--muted);flex:1">Vom System nachgerechnet (${attempts} ${attempts === 1 ? 'Versuch' : 'Versuche'}) · CTL-Prognose ${proj.ctl.toFixed(0)} · Ziel +10 bis +20 ${inRange ? '✓' : '— knapp daneben, prüfe selbst'}</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:11px">${esc(plan.begruendung)}</div>` +
+      plan.days.map(d => `<div style="display:flex;gap:10px;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(42,49,64,.5)">
+        <span class="mono" style="color:var(--muted);width:74px;flex-shrink:0;font-size:11.5px">${days[new Date(d.plan_date).getDay()]} ${d.plan_date.slice(8)}.${d.plan_date.slice(5,7)}.</span>
+        <span><strong>${esc(d.main_text)}</strong>${d.duration_min ? " · " + d.duration_min + "'" : ''}</span></div>`).join('') +
+      `<div style="font-size:12px;color:var(--amber);margin-top:11px">⚠ Übernehmen überschreibt ${start} bis ${end}. Der Renntag selbst bleibt unangetastet.</div>`;
+    applyBtn.disabled = false;
+  } catch (e) { el.innerHTML = `<span class="empty">Fehler: ${esc(e.message)}</span>`; applyBtn.style.display = 'none'; }
+}
+async function applyTaperFix() {
+  const gp = S._goalPlan;
+  if (!gp) return;
+  const dates = gp.plan.days.map(d => d.plan_date).sort();
+  const lo = dates[0], hi = dates[dates.length - 1];
+  if (!confirm(`Taper von ${lo} bis ${hi} überschreiben (${gp.plan.days.length} Tage)?`)) return;
+  await sbDelete('adaptive_plan', `plan_date=gte.${lo}&plan_date=lte.${hi}`);
+  const rows = gp.plan.days.map(d => ({
+    plan_date: d.plan_date, main_text: d.main_text, detail_text: d.detail_text || '',
+    duration_min: d.duration_min || 0, sport_types: d.sport_types || ['ride'],
+    hf_target_lo: d.hf_target_lo ?? null, hf_target_hi: d.hf_target_hi ?? null,
+    coaching_rationale: 'ECHELON Taper-Autokorrektur (selbst-verifiziert): ' + gp.goal.title
+  }));
+  const ok = await sbUpsert('adaptive_plan', rows);
+  closeModal('goalModal');
+  document.getElementById('goalApplyBtn').onclick = applyGoalPlan; // Standard-Handler zurücksetzen
+  toast(ok ? `Taper korrigiert ✓ (${rows.length} Tage)` : 'Fehler beim Schreiben');
+  if (ok) { loadPlan(); runAutopilot(); }
+}
+
+/* ================================================================
+   PLAN-AKTIONEN — eigenständige Anpassung
+================================================================ */
+async function actionRest() {
+  const p = S.plan.find(x => x.plan_date === S.today);
+  if (!p || !confirm(`"${p.main_text}" heute durch Ruhetag ersetzen?`)) return;
+  const ok = await sbPatch('adaptive_plan', `plan_date=eq.${S.today}`, {
+    main_text: 'Ruhetag', duration_min: 0, sport_types: ['rest'], hf_target_lo: null, hf_target_hi: null,
+    detail_text: `Autoregulation: ursprünglich "${p.main_text}" — auf Ruhetag gesetzt. Einheit wird verschoben, nicht gestrichen.`,
+    coaching_rationale: 'Manuell via ECHELON auf Ruhetag gesetzt.'
+  });
+  if (ok) { toast('Heute ist jetzt Ruhetag ✓'); loadPlan(); } else toast('Fehler beim Speichern');
+}
+async function actionSwap() {
+  const t = new Date(S.today); t.setDate(t.getDate() + 1);
+  const tomorrow = t.toLocaleDateString('sv-SE');
+  const a = S.plan.find(x => x.plan_date === S.today);
+  const b = S.plan.find(x => x.plan_date === tomorrow);
+  if (!a || !b) { toast('Morgen liegt außerhalb dieser Woche — nutze "ECHELON anpassen"'); return; }
+  if (!confirm(`Tauschen: heute "${b.main_text}", morgen "${a.main_text}"?`)) return;
+  const fields = p => ({ main_text: p.main_text, detail_text: p.detail_text, duration_min: p.duration_min, sport_types: p.sport_types, hf_target_lo: p.hf_target_lo, hf_target_hi: p.hf_target_hi, coaching_rationale: 'Getauscht via ECHELON: ' + (p.coaching_rationale || '') });
+  const ok1 = await sbPatch('adaptive_plan', `plan_date=eq.${S.today}`, fields(b));
+  const ok2 = await sbPatch('adaptive_plan', `plan_date=eq.${tomorrow}`, fields(a));
+  if (ok1 && ok2) { toast('Einheiten getauscht ✓'); loadPlan(); } else toast('Fehler beim Tauschen');
+}
+async function actionAiAdjust() {
+  if (!CLAUDE_KEY) { toast('API Key fehlt — ⚙'); return; }
+  const box = document.getElementById('proposalBox');
+  box.innerHTML = '<div class="card"><div class="loading"><div class="spinner"></div> ECHELON plant um…</div></div>';
+  try {
+    const raw = await claude(buildSystemPrompt() + '\n\nLIVE-DATEN:\n' + chatContext() +
+      (S.intel ? '\n\nAUTOPILOT-WARNUNGEN:\n' + S.intel.alerts.map(a => '- ' + a.t).join('\n') : ''),
+      [{ role: 'user', content: `Prüfe den Wochenplan gegen Check-in, Tagesurteil und Warnungen. Wenn Anpassung sinnvoll: antworte NUR mit JSON, kein Markdown, keine Backticks:
+{"begruendung":"1-2 Sätze warum","changes":[{"plan_date":"YYYY-MM-DD","main_text":"...","detail_text":"...","duration_min":60,"hf_target_lo":139,"hf_target_hi":155}]}
+Nur Tage dieser Woche ändern die es wirklich brauchen (max 3). hf_target null wenn nicht relevant. Wenn der Plan passt: {"begruendung":"Plan passt — keine Änderung nötig.","changes":[]}` }],
+      MODEL_SMART, 800);
+    const prop = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    if (!prop.changes || !prop.changes.length) {
+      box.innerHTML = `<div class="card"><h3>Plan-Prüfung</h3><div class="coach-msg">${md(prop.begruendung || 'Plan passt.')}</div></div>`;
+      return;
+    }
+    S._proposal = prop;
+    const days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    box.innerHTML = `<div class="proposal">
+      <div class="ph">ECHELON schlägt vor</div>
+      <div class="why">${esc(prop.begruendung)}</div>
+      ${prop.changes.map(ch => `<div class="pc"><span class="pd">${days[new Date(ch.plan_date).getDay()]} ${ch.plan_date.slice(8)}.${ch.plan_date.slice(5,7)}.</span><span><strong>${esc(ch.main_text)}</strong>${ch.duration_min ? ' · ' + ch.duration_min + "'" : ''}<br><span style="color:var(--muted);font-size:12px">${esc((ch.detail_text || '').slice(0, 110))}</span></span></div>`).join('')}
+      <div style="display:flex;gap:9px;margin-top:12px">
+        <button class="btn btn-primary" style="flex:1" onclick="applyProposal()">Übernehmen</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('proposalBox').innerHTML=''">Verwerfen</button>
+      </div></div>`;
+  } catch (e) { box.innerHTML = `<div class="card"><div class="empty">Fehler: ${esc(e.message)}</div></div>`; }
+}
+async function applyProposal() {
+  const prop = S._proposal;
+  if (!prop) return;
+  let n = 0;
+  for (const ch of prop.changes) {
+    const body = { main_text: ch.main_text, detail_text: ch.detail_text, coaching_rationale: 'ECHELON Autopilot: ' + prop.begruendung };
+    if (ch.duration_min != null) body.duration_min = ch.duration_min;
+    if ('hf_target_lo' in ch) body.hf_target_lo = ch.hf_target_lo;
+    if ('hf_target_hi' in ch) body.hf_target_hi = ch.hf_target_hi;
+    if (await sbPatch('adaptive_plan', `plan_date=eq.${ch.plan_date}`, body)) n++;
+  }
+  document.getElementById('proposalBox').innerHTML = '';
+  toast(`${n} Tag(e) angepasst ✓`);
+  loadPlan();
+}
+
+/* ================================================================
+   WOCHEN-REVIEW — automatisch generiert & gespeichert
+================================================================ */
+async function genWeekReview() {
+  if (!CLAUDE_KEY) { toast('API Key fehlt — ⚙'); return; }
+  document.getElementById('reviewModal').classList.add('show');
+  document.getElementById('reviewSaveBtn').disabled = true;
+  const el = document.getElementById('reviewContent');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> ECHELON analysiert die Woche…</div>';
+  try {
+    const [ws] = weekBounds();
+    const [wos, cis] = await Promise.all([
+      sb('workouts', `?workout_date=gte.${ws}&workout_date=lte.${S.today}&sport=neq.ebikeride&order=workout_date.asc&select=workout_date,name,sport,tss,duration_min,avg_watts,avg_hr,quality_label`),
+      sb('daily_checkin', `?checkin_date=gte.${ws}&checkin_date=lte.${S.today}&order=checkin_date.asc&select=checkin_date,hrv_ms,sleep_hours,our_readiness`)
+    ]);
+    const tl = S.load.length ? S.load[S.load.length - 1] : {};
+    const sum = k => wos.filter(w => (w.sport || '').includes(k)).reduce((a, w) => a + (w.tss || 0), 0);
+    S._review = {
+      week_start: ws, total_tss: wos.reduce((a, w) => a + (w.tss || 0), 0),
+      tss_rad: sum('ride'), tss_lauf: sum('run'), tss_kraft: sum('weight'),
+      avg_hrv: Math.round(cis.reduce((a, c) => a + (c.hrv_ms || 0), 0) / (cis.filter(c => c.hrv_ms).length || 1)),
+      avg_readiness: Math.round(cis.reduce((a, c) => a + (c.our_readiness || 0), 0) / (cis.filter(c => c.our_readiness).length || 1)),
+      sessions_done: wos.length
+    };
+    const txt = await claude(buildSystemPrompt(),
+      [{ role: 'user', content: `Schreibe den Wochenrückblick (max 180 Wörter). Format:
+**Bilanz:** [2-3 Sätze mit Zahlen]
+**Stärkste Einheit:** [1 Satz]
+**Gelernt:** [1-2 konkrete Erkenntnisse]
+**Nächste Woche:** [Fokus in 1-2 Sätzen]
+
+DATEN:
+Einheiten: ${wos.map(w => `${w.workout_date} ${w.name} TSS${w.tss ?? '—'} ${w.avg_watts ? 'Ø' + w.avg_watts + 'W' : ''} ${w.quality_label || ''}`).join(' | ')}
+Check-ins: ${cis.map(c => `${c.checkin_date.slice(5)}: HRV${c.hrv_ms ?? '—'} R${c.our_readiness ?? '—'}`).join(' | ')}
+CTL ${tl.ctl ?? '—'} TSB ${tl.tsb ?? '—'} | Gesamt-TSS ${S._review.total_tss}
+Autopilot: ${S.intel ? S.intel.alerts.map(a => a.t).join('; ') : '—'}` }],
+      MODEL_SMART, 600);
+    S._review.coach_summary = txt;
+    el.innerHTML = md(txt);
+    document.getElementById('reviewSaveBtn').disabled = false;
+  } catch (e) { el.innerHTML = `<span class="empty">Fehler: ${esc(e.message)}</span>`; }
+}
+async function saveWeekReview() {
+  const r = S._review;
+  if (!r) return;
+  const ok = await sbUpsert('weekly_analysis', {
+    week_start: r.week_start, total_tss: r.total_tss, tss_rad: r.tss_rad, tss_lauf: r.tss_lauf, tss_kraft: r.tss_kraft,
+    avg_hrv: r.avg_hrv, avg_readiness: r.avg_readiness, sessions_done: r.sessions_done,
+    coach_summary: r.coach_summary, phase: 'auto', next_week_focus: 'Siehe coach_summary'
+  });
+  toast(ok ? 'Review gespeichert ✓' : 'Fehler beim Speichern');
+  if (ok) closeModal('reviewModal');
+}
+
+/* ================================================================
+   PLAN
+================================================================ */
+S.weekOffset = 0;
+function weekBounds(offset) {
+  const off = offset === undefined ? (S.weekOffset || 0) : offset;
+  const t = new Date(S.today);
+  const dow = t.getDay();
+  const mon = new Date(t); mon.setDate(t.getDate() - (dow === 0 ? 6 : dow - 1) + off * 7);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  return [mon.toLocaleDateString('sv-SE'), sun.toLocaleDateString('sv-SE')];
+}
+function shiftWeek(dir) {
+  S.weekOffset = dir === 0 ? 0 : (S.weekOffset || 0) + dir;
+  loadPlan();
+}
+async function loadPlan() {
+  const [ws, we] = weekBounds();
+  try {
+    S.plan = await sb('adaptive_plan', `?plan_date=gte.${ws}&plan_date=lte.${we}&order=plan_date.asc`);
+  } catch (e) { S.plan = []; }
+  const off = S.weekOffset || 0;
+  const tag = off === 0 ? ' · diese Woche' : off > 0 ? ` · in ${off} Wo.` : ` · vor ${-off} Wo.`;
+  document.getElementById('weekRange').textContent = `${ws.slice(8)}.${ws.slice(5,7)}. – ${we.slice(8)}.${we.slice(5,7)}.${tag}`;
+  renderWeek(); renderWeekSummary(); renderPhases();
+  if (off === 0) renderToday();
+}
+function renderWeekSummary() {
+  const el = document.getElementById('weekSummary');
+  if (!el) return;
+  if (!S.plan.length) { el.innerHTML = ''; return; }
+  const mins = S.plan.reduce((a, p) => a + (p.duration_min || 0), 0);
+  const runs = S.plan.filter(p => (p.sport_types || []).includes('run')).length;
+  const strength = S.plan.filter(p => (p.sport_types || []).includes('weighttraining')).length;
+  const rest = S.plan.filter(p => /ruhetag/i.test(p.main_text || '')).length;
+  el.innerHTML = `<span>Gesamt <b>${(mins/60).toFixed(1)}h</b></span><span>Läufe <b>${runs}</b></span><span>Kraft <b>${strength}</b></span>${rest ? `<span>Ruhetage <b>${rest}</b></span>` : ''}`;
+}
+function renderWeek() {
+  const el = document.getElementById('weekPlan');
+  if (!S.plan.length) { el.innerHTML = '<div class="empty">Kein Plan für diese Woche in der Datenbank.</div>'; return; }
+  const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  el.innerHTML = S.plan.map((p, i) => {
+    const isToday = p.plan_date === S.today;
+    const hf = p.hf_target_lo || p.hf_target_hi ? `HF ${p.hf_target_lo ?? ''}${p.hf_target_lo && p.hf_target_hi ? '–' : '≤'}${p.hf_target_hi ?? ''} bpm` : '';
+    return `<div class="plan-day${isToday ? ' today' : ''}" onclick="togglePlanDetail(${i})">
+      <span class="d">${days[new Date(p.plan_date).getDay()]} ${p.plan_date.slice(8)}.</span>
+      <span class="t"><div class="n">${esc(p.main_text)}</div>${hf ? `<div class="hf">${hf}</div>` : ''}</span>
+      <span class="dur">${p.duration_min ? p.duration_min + "'" : ''}</span>
+    </div>
+    <div class="plan-detail" id="pd${i}" style="display:none">${esc(p.detail_text || 'Keine Details hinterlegt.')}${p.coaching_rationale ? '\n\n💡 ' + esc(p.coaching_rationale) : ''}</div>`;
+  }).join('');
+}
+function togglePlanDetail(i) {
+  const d = document.getElementById('pd' + i);
+  if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+/* ================================================================
+   HEUTE-KARTE — Vorgabe groß, Ablauf geordnet, Ergebnis per Schalter
+================================================================ */
+const WT_DAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const wtDay = d => `${WT_DAYS[new Date(d).getDay()]} ${d.slice(8)}.${d.slice(5, 7)}.`;
+function splitMain(t) {
+  const m = (t || '').match(/^(.+?)(?:\s·\s|:\s)(.+)$/);
+  const kind = m ? m[1] : '', rest = m ? m[2] : (t || '');
+  const [rx, ...extra] = rest.split(' + ');
+  return { kind, rx, extra: extra.join(' + ') };
+}
+function parseSteps(txt) {
+  return (txt || '').split(' // ').map(s => s.trim()).filter(Boolean).map(s => {
+    const m = s.match(/^([A-ZÄÖÜ]{3,}):\s*([\s\S]*)$/);
+    return m ? { key: m[1], k: m[1][0] + m[1].slice(1).toLowerCase(), v: m[2].trim() } : { key: '', k: '', v: s };
+  });
+}
+function renderToday() {
+  const el = document.getElementById('todayWorkout');
+  const p = S.plan.find(x => x.plan_date === S.today);
+  if (!p) { el.innerHTML = '<div class="empty">Keine Einheit für heute im Plan.</div>'; return; }
+  const rest = /ruhetag/i.test(p.main_text || '');
+  const run = isIntervalDay(p);
+  const trackable = !rest && (run || liftOf(p));
+  const { kind, rx, extra } = splitMain(p.main_text);
+  const hf = p.hf_target_lo || p.hf_target_hi ? `HF ${p.hf_target_lo ?? ''}${p.hf_target_lo && p.hf_target_hi ? '–' : '≤'}${p.hf_target_hi ?? ''} bpm` : '';
+  const meta = [p.duration_min ? p.duration_min + ' min' : '', hf, extra].filter(Boolean).map(t => `<span>${esc(t)}</span>`).join('');
+  const notes = (p.coaching_rationale || '').split(' | ').filter(Boolean)
+    .map(n => `<div class="wt-note${/^Fallback/.test(n) ? ' fb' : ''}">${esc(n)}</div>`).join('');
+  const steps = parseSteps(p.detail_text);
+  const prim = new Set(['HAUPTTEIL', 'BACKOFF', 'PAUSE', 'LAUF']);
+  let main = steps.filter(s => !s.key || prim.has(s.key)), more = steps.filter(s => s.key && !prim.has(s.key));
+  if (!main.length) { main = steps; more = []; }
+  const row = s => `<div class="wt-step${s.k ? '' : ' solo'}">${s.k ? `<span class="k">${esc(s.k)}</span>` : ''}<span class="v">${esc(s.v)}</span></div>`;
+  const seg = trackable ? `<div class="seg" role="group" aria-label="Ergebnis">
+      <button class="${p.result === 'ok' ? 'on g' : ''}" aria-pressed="${p.result === 'ok'}" onclick="markResult('ok')">Geschafft</button>
+      <button class="${p.result === 'fail' ? 'on' : ''}" aria-pressed="${p.result === 'fail'}" onclick="markResult('fail')">Verfehlt</button>
+    </div>` : '';
+  el.innerHTML = `
+    ${kind ? `<div class="wt-kind">${esc(kind)}</div>` : ''}
+    <div class="wt-rx">${esc(rx)}</div>
+    ${meta ? `<div class="wt-meta">${meta}</div>` : ''}
+    ${notes}
+    ${steps.length ? `<div class="wt-steps">${main.map(row).join('')}${more.length ? `<details class="wt-more"><summary>Ganzer Ablauf</summary>${more.map(row).join('')}</details>` : ''}</div>` : ''}
+    <div class="wt-foot" id="wtFoot">
+      ${seg}
+      <details class="menu"><summary class="btn btn-ghost">Ändern</summary>
+        <div class="menu-pop">
+          <button onclick="closeMenu(this);actionRest()">Ruhetag setzen</button>
+          <button onclick="closeMenu(this);actionSwap()">Mit morgen tauschen</button>
+          <button onclick="closeMenu(this);actionAiAdjust()">Von ECHELON anpassen</button>
+        </div></details>
+    </div>
+    <div class="wt-fb" id="fbSheet" hidden></div>`;
+}
+function closeMenu(b) { const d = b.closest('details'); if (d) d.open = false; }
+document.addEventListener('click', e => document.querySelectorAll('details.menu[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
+
+/* ================================================================
+   FALLBACK — verfehlte Kraft-/Intervall-Einheit passt den Plan an
+   Kraft:      1× wiederholen (Zyklus rutscht 1 Woche) · 2× in Folge −5 % · 3× in Folge Deload −10 %
+   Intervalle: 1× wiederholen, letzte Steigerung des Blocks entfällt · 2× Pace +5 s/km, −1 Rep ·
+               3× eine Woche Z2, danach Pace +10 s/km, −1 Rep
+================================================================ */
+function liftOf(p) {
+  const t = (p && p.main_text) || '';
+  if (/Kraft( Tag)? B|Bank/i.test(t)) return 'Bank';
+  if (/Kraft( Tag)? A|Kreuzheb/i.test(t)) return 'Kreuzheben';
+  return null;
+}
+function scaleKg(txt, f) {
+  if (f === 1) return txt || '';
+  return (txt || '').replace(/@\s*(\d+(?:[.,]\d+)?)\s*kg/g, (m, w) => {
+    const v = Math.round(parseFloat(w.replace(',', '.')) * f / 2.5) * 2.5;
+    return '@ ' + String(v).replace('.', ',') + ' kg';
+  });
+}
+function isIntervalDay(p) { return /Lauf/i.test((p && p.main_text) || '') && /Intervall/i.test((p && p.main_text) || ''); }
+function weekOf(r) { const m = ((r && r.coaching_rationale) || '').match(/Woche (\d+)\/(\d+)/); return m ? { w: +m[1], n: +m[2] } : null; }
+function isDeloadRow(r) {
+  const k = weekOf(r);
+  if (k) return k.w % 4 === 0 && k.w < k.n;
+  return /@\s*\d:\d\d–\d:\d\d/.test((r && r.main_text) || '');
+}
+function paceAdd(txt, d) {
+  if (!d) return txt || '';
+  const f = (mm, ss) => { const t = +mm * 60 + +ss + d; return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+  return (txt || '').replace(/@\s*(\d):(\d\d)(?:–(\d):(\d\d))?/g, (m, m1, s1, m2, s2) => '@ ' + f(m1, s1) + (m2 ? '–' + f(m2, s2) : ''));
+}
+function repsAdd(txt, d) {
+  if (!d) return txt || '';
+  const n = x => Math.max(3, +x + d);
+  return (txt || '').replace(/(\d+)(?:–(\d+))?×1 km/g, (m, a, b) => (b ? n(a) + '–' + n(b) : n(a)) + '×1 km');
+}
+function kmAdd(txt, d) {
+  if (!d) return txt || '';
+  return (txt || '').replace(/UMFANG: ca\. (\d+)–(\d+) km/, (m, a, b) => `UMFANG: ca. ${+a + d}–${+b + d} km`);
+}
+function adaptIntervalRow(s, dPace, dReps) {
+  const r = isDeloadRow(s) ? 0 : dReps;
+  return {
+    main_text: repsAdd(paceAdd(s.main_text, dPace), r),
+    detail_text: kmAdd(repsAdd(paceAdd(s.detail_text, dPace), r), r),
+    duration_min: s.duration_min ? s.duration_min + Math.round(r * 6.5) : s.duration_min,
+    hf_target_lo: s.hf_target_lo, hf_target_hi: s.hf_target_hi
+  };
+}
+const Z2_FALLBACK_WEEK = {
+  main_text: 'Lauf – Z2 locker 6 km + Strides (Intervall-Fallback)',
+  detail_text: 'LAUF: 6 km sehr locker, HF ≤148 bpm, am Ende 4 Strides à 15 s. // ZIEL: Erholung statt Reiz. Schlaf, Verdauung und Sehne prüfen, bevor die Intervalle weitergehen. // ACHILLES: flache, gleichmäßige Strecke; bei Ziehen sofort gehen.',
+  duration_min: 50, hf_target_lo: 120, hf_target_hi: 148
+};
+const stripFb = r => (r || '').split(' | ').filter(x => x && !/^Fallback/.test(x)).join(' | ');
+
+async function buildFallback(p) {
+  const interval = isIntervalDay(p);
+  const lift = interval ? null : liftOf(p);
+  const like = interval ? '*Lauf*Intervall*' : lift === 'Bank' ? '*Kraft B*' : '*Kraft A*';
+  const past = await sb('adaptive_plan', `?plan_date=lt.${S.today}&main_text=ilike.${like}&order=plan_date.desc&limit=4&select=plan_date,result`);
+  let streak = 1;
+  for (const r of past) { if (r.result === 'fail') streak++; else break; }
+  const sel = 'plan_date,main_text,detail_text,duration_min,hf_target_lo,hf_target_hi,coaching_rationale';
+  const fut = await sb('adaptive_plan', `?plan_date=gt.${S.today}&main_text=ilike.${like}&order=plan_date.asc&limit=${interval ? 8 : 4}&select=${sel}`);
+  const rows = []; let label;
+  const note = (src, l, adj) => ({ coaching_rationale: `Fallback (${streak}× in Folge verfehlt, ${wtDay(S.today)}): ${l}.` + (stripFb(src.coaching_rationale) ? ' | ' + stripFb(src.coaching_rationale) : ''), is_adjusted: true, adjustment_reason: adj });
+  if (interval) {
+    const dP = streak >= 3 ? 10 : streak === 2 ? 5 : 0, dR = streak >= 2 ? -1 : 0;
+    const bi = fut.findIndex(isDeloadRow);
+    const blockEnd = isDeloadRow(p) ? 0 : (bi >= 0 ? bi : fut.length);
+    label = streak >= 3 ? 'Eine Woche Z2, danach Pace +10 s/km und 1 Rep weniger'
+      : streak === 2 ? 'Wiederholen, Pace +5 s/km und 1 Rep weniger'
+      : blockEnd > 0 ? 'Wiederholen, die letzte Steigerung des Blocks entfällt'
+      : 'Deload verfehlt. Der Plan bleibt, achte auf Erholung, Schlaf, Verdauung und Sehne';
+    const seq = blockEnd > 0 ? (streak >= 3 ? [Z2_FALLBACK_WEEK, p] : [p]).concat(fut.slice(0, blockEnd)) : [];
+    fut.forEach((r, i) => {
+      const shifted = i < blockEnd, src = shifted ? seq[i] : r;
+      if (!shifted && !dP && !dR) return;
+      const body = src === Z2_FALLBACK_WEEK ? { ...Z2_FALLBACK_WEEK } : adaptIntervalRow(src, dP, dR);
+      rows.push({ plan_date: r.plan_date, old: r.main_text, body: { ...body, ...note(src, label, 'Intervall-Fallback') } });
+    });
+  } else {
+    const f = streak >= 3 ? 0.9 : streak === 2 ? 0.95 : 1;
+    label = streak >= 3 ? 'Deload, alle Gewichte −10 %' : streak === 2 ? 'Wiederholen, alle Gewichte −5 %' : 'Wiederholen, der Zyklus rutscht eine Woche';
+    const src = [p, ...fut];
+    fut.forEach((r, i) => rows.push({ plan_date: r.plan_date, old: r.main_text, body: {
+      main_text: scaleKg(src[i].main_text, f),
+      detail_text: (i === 0 && streak >= 3 ? '⚠ Deload-Woche: Technik und Tempo statt Last. ' : '') + scaleKg(src[i].detail_text, f),
+      ...note(src[i], label, 'Kraft-Fallback') } }));
+  }
+  return { streak, label, rows, interval };
+}
+async function markResult(v) {
+  const p = S.plan.find(x => x.plan_date === S.today);
+  if (!p) return;
+  if (p.result === v) {
+    await sbPatch('adaptive_plan', `plan_date=eq.${S.today}`, { result: null });
+    toast(v === 'fail' ? 'Markierung entfernt, bereits angepasste Wochen bleiben' : 'Markierung entfernt');
+    return loadPlan();
+  }
+  if (v === 'ok') {
+    const ok = await sbPatch('adaptive_plan', `plan_date=eq.${S.today}`, { result: 'ok' });
+    toast(ok ? (p.result === 'fail' ? 'Geschafft, bereits angepasste Wochen bleiben' : 'Als geschafft markiert') : 'Fehler beim Speichern');
+    return loadPlan();
+  }
+  try { S._fb = await buildFallback(p); showFallback(); } catch (e) { toast('Fehler: ' + e.message); }
+}
+function showFallback() {
+  const fb = S._fb, box = document.getElementById('fbSheet'), foot = document.getElementById('wtFoot');
+  if (!fb || !box) return;
+  const head = fb.streak >= 3 ? 'Dritte verfehlte Einheit in Folge' : fb.streak === 2 ? 'Zweite verfehlte Einheit in Folge' : 'Einheit verfehlt';
+  const hero = t => esc(splitMain(t).rx);
+  const list = fb.rows.slice(0, 3).map(r => `<li><span class="d">${wtDay(r.plan_date)}</span><span>${r.old !== r.body.main_text ? `<s>${hero(r.old)}</s> ` : ''}${hero(r.body.main_text)}</span></li>`).join('');
+  box.innerHTML = `
+    <div class="fb-h">${head}</div>
+    <div class="fb-s">${esc(fb.label)}</div>
+    ${list ? `<ul class="fb-rows">${list}</ul>` : ''}
+    ${fb.rows.length > 3 ? `<div class="fb-more">und ${fb.rows.length - 3} weitere Termine</div>` : ''}
+    <div class="fb-act"><button class="btn btn-primary" onclick="applyFallback()">${fb.rows.length ? 'Plan anpassen' : 'Notieren'}</button><button class="btn btn-ghost" onclick="cancelFallback()">Abbrechen</button></div>
+    ${fb.interval ? '<button class="fb-alt" onclick="cancelFallback();actionRest()">Sehne gezogen? Stattdessen Ruhetag</button>' : ''}`;
+  box.hidden = false; if (foot) foot.hidden = true;
+}
+function cancelFallback() {
+  S._fb = null;
+  const box = document.getElementById('fbSheet'), foot = document.getElementById('wtFoot');
+  if (box) box.hidden = true; if (foot) foot.hidden = false;
+}
+async function applyFallback() {
+  const fb = S._fb;
+  if (!fb) return;
+  let ok = await sbPatch('adaptive_plan', `plan_date=eq.${S.today}`, { result: 'fail' });
+  for (const r of fb.rows) ok = (await sbPatch('adaptive_plan', `plan_date=eq.${r.plan_date}`, r.body)) && ok;
+  S._fb = null;
+  toast(ok ? (fb.rows.length ? 'Plan angepasst' : 'Als verfehlt notiert') : 'Fehler beim Speichern');
+  loadPlan();
+}
+function renderPhases() {
+  document.getElementById('phasePlan').innerHTML = K.saison.map(s =>
+    `<div class="phase-row"><span class="w">${s.w}</span><span class="f">${s.f}</span><span class="type">${s.t}</span></div>`).join('');
+}
+function openPlaybook() {
+  document.getElementById('playbookContent').innerHTML = `
+    <div class="k-row"><span class="k">Pacing</span><span class="v">${K.race.pacing}</span></div>
+    <div class="k-row"><span class="k">Anstiege ⚠</span><span class="v">${K.race.anstiege}</span></div>
+    <div class="k-row"><span class="k">Ernährung</span><span class="v">${K.race.ernaehrung}</span></div>
+    <div class="k-row"><span class="k">Material</span><span class="v">${K.race.material}</span></div>
+    <div class="k-row"><span class="k">Mental</span><span class="v">${K.race.mental}</span></div>`;
+  document.getElementById('playbookModal').classList.add('show');
+}
+
+/* ================================================================
+   ANALYSE — SVG Charts
+================================================================ */
+async function loadAnalyse() {
+  try {
+    const since30 = new Date(Date.now() - 30 * 86400000).toLocaleDateString('sv-SE');
+    const since60 = new Date(Date.now() - 60 * 86400000).toLocaleDateString('sv-SE');
+    [S.hrvHist, S.load, S.workouts] = await Promise.all([
+      sb('daily_checkin', `?checkin_date=gte.${since30}&order=checkin_date.asc&select=checkin_date,hrv_ms`),
+      sb('training_load', `?load_date=gte.${since60}&order=load_date.asc&select=load_date,ctl,atl,tsb`),
+      sb('workouts', `?sport=neq.ebikeride&order=workout_date.desc&limit=12&select=id,workout_date,name,sport,tss,avg_hr,avg_watts,duration_min,quality_label,coaching_analysis`)
+    ]);
+  } catch (e) { console.warn(e); }
+  drawHrv(); drawLoad(); renderWorkouts();
+}
+function svgLine(points, w, h, color, width, dash) {
+  if (points.length < 2) return '';
+  const d = points.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('');
+  return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width || 2}" ${dash ? `stroke-dasharray="${dash}"` : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+}
+function drawHrv() {
+  const el = document.getElementById('hrvChart');
+  const data = S.hrvHist.filter(d => d.hrv_ms != null);
+  if (data.length < 2) { el.innerHTML = '<div class="empty">Zu wenig Daten.</div>'; return; }
+  const W = 720, H = 210, P = 28;
+  const vals = data.map(d => d.hrv_ms);
+  const min = Math.min(25, ...vals) - 2, max = Math.max(50, ...vals) + 3;
+  const x = i => P + i * (W - 2 * P) / (data.length - 1);
+  const y = v => H - P - (v - min) * (H - 2 * P) / (max - min);
+  const band = (lo, hi, color) => `<rect x="${P}" y="${y(hi)}" width="${W - 2 * P}" height="${Math.max(2, y(lo) - y(hi))}" fill="${color}" opacity="0.09" rx="3"/>`;
+  const pts = data.map((d, i) => [x(i), y(d.hrv_ms)]);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}">
+    ${band(K.hrv.alltagBaseline[0], K.hrv.alltagBaseline[1], '#8A94A6')}
+    ${band(K.hrv.bioBaseline[0], K.hrv.bioBaseline[1], '#34D07C')}
+    ${[30, 40, 50].map(v => `<line x1="${P}" y1="${y(v)}" x2="${W - P}" y2="${y(v)}" stroke="#2A3140" stroke-width="1"/><text x="${P - 5}" y="${y(v) + 3.5}" fill="#8A94A6" font-size="10" text-anchor="end" font-family="JetBrains Mono">${v}</text>`).join('')}
+    ${svgLine(pts, W, H, '#FFB020', 2.4)}
+    ${pts.map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#FFB020"/>`).join('')}
+    <text x="${pts[pts.length - 1][0]}" y="${pts[pts.length - 1][1] - 9}" fill="#FFB020" font-size="12" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">${vals[vals.length - 1]}</text>
+  </svg>`;
+}
+function drawLoad() {
+  const el = document.getElementById('loadChart');
+  const data = S.load;
+  if (data.length < 2) { el.innerHTML = '<div class="empty">Zu wenig Daten.</div>'; return; }
+  const W = 720, H = 210, P = 28;
+  const all = data.flatMap(d => [+d.ctl, +d.atl, +d.tsb]);
+  const min = Math.min(...all) - 5, max = Math.max(...all) + 5;
+  const x = i => P + i * (W - 2 * P) / (data.length - 1);
+  const y = v => H - P - (v - min) * (H - 2 * P) / (max - min);
+  const line = key => data.map((d, i) => [x(i), y(+d[key])]);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}">
+    <line x1="${P}" y1="${y(0)}" x2="${W - P}" y2="${y(0)}" stroke="#2A3140" stroke-width="1.5"/>
+    <text x="${P - 5}" y="${y(0) + 3.5}" fill="#8A94A6" font-size="10" text-anchor="end" font-family="JetBrains Mono">0</text>
+    ${svgLine(line('tsb'), W, H, '#5B9DFF', 1.8)}
+    ${svgLine(line('atl'), W, H, '#FFB020', 1.8, '4 3')}
+    ${svgLine(line('ctl'), W, H, '#34D07C', 2.6)}
+    <text x="${W - P}" y="${y(+data[data.length - 1].ctl) - 7}" fill="#34D07C" font-size="12" font-weight="700" text-anchor="end" font-family="JetBrains Mono">CTL ${(+data[data.length - 1].ctl).toFixed(0)}</text>
+  </svg>`;
+}
+function renderWorkouts() {
+  const el = document.getElementById('recentWorkouts');
+  if (!S.workouts.length) { el.innerHTML = '<div class="empty">Keine Einheiten.</div>'; return; }
+  const badge = q => {
+    if (!q) return '';
+    const cls = /stark|pr/i.test(q) ? (q === 'PR' ? 'pr' : 'stark') : /gut/i.test(q) ? 'gut' : /hitze|warn|einbruch/i.test(q) ? 'warn' : 'ok';
+    return `<span class="badge ${cls}">${esc(q)}</span>`;
+  };
+  el.innerHTML = S.workouts.map(w => `<div class="wo-row">
+    <span class="date">${w.workout_date.slice(5).split('-').reverse().join('.')}</span>
+    <span class="nm">${esc(w.name)} ${badge(w.quality_label)}<div class="sub">${w.duration_min ? w.duration_min + "' · " : ''}${w.avg_watts ? 'Ø' + w.avg_watts + 'W · ' : ''}${w.avg_hr ? 'Ø' + w.avg_hr + 'bpm' : ''}</div></span>
+    <span class="tss">${w.tss ?? '—'}</span>
+  </div>`).join('');
+}
+
+/* ================================================================
+   CHAT
+================================================================ */
+async function loadChat() {
+  try {
+    const [rows, ci7] = await Promise.all([
+      sb('chat_history', '?order=created_at.desc&limit=24&select=role,content'),
+      sb('daily_checkin', '?order=checkin_date.desc&limit=7&select=checkin_date,hrv_ms,sleep_hours,resting_hr,our_readiness')
+    ]);
+    S.chat = rows.reverse().map(r => ({ role: r.role, content: r.content }));
+    S.ci7 = ci7.reverse();
+  } catch (e) { S.chat = []; S.ci7 = []; }
+  renderChat();
+}
+function chatContext() {
+  const week = S.plan.map(p => `${['So','Mo','Di','Mi','Do','Fr','Sa'][new Date(p.plan_date).getDay()]} ${p.plan_date.slice(8)}.${p.plan_date.slice(5,7)}.: ${p.main_text}${p.duration_min ? ' (' + p.duration_min + "')" : ''}`).join('\n');
+  const ci = (S.ci7 || []).map(c => `${c.checkin_date.slice(5)}: HRV ${c.hrv_ms ?? '—'}ms, Schlaf ${c.sleep_hours ?? '—'}h, Readiness ${c.our_readiness ?? '—'}`).join('\n');
+  return liveContext() + '\n\nWOCHENPLAN Mo–So:\n' + (week || '—') + '\n\nCHECK-INS 7 TAGE:\n' + (ci || '—');
+}
+function renderChat() {
+  const el = document.getElementById('chatMsgs');
+  if (!S.chat.length) {
+    el.innerHTML = `<div class="msg a">${md('Hey ' + K.athlete.name + ' — **ECHELON** hier. Ich kenne deine kompletten Trainingsdaten, Zonen, das Achilles-Protokoll und den Ibbenbüren-Plan.\n\nNutz die Schnellfragen unten oder frag frei — ich beziehe Check-ins, Wochenplan und letzte Einheiten automatisch ein.')}</div>`;
+    return;
+  }
+  el.innerHTML = S.chat.map(m => `<div class="msg ${m.role === 'user' ? 'u' : 'a'}">${m.role === 'user' ? esc(m.content) : md(m.content)}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+let chatBusy = false;
+async function sendChat() {
+  if (chatBusy) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!CLAUDE_KEY) { toast('API Key fehlt — Einstellungen ⚙'); openSettings(); return; }
+  input.value = ''; autoGrow(input);
+  chatBusy = true;
+  S.chat.push({ role: 'user', content: text });
+  renderChat();
+  const el = document.getElementById('chatMsgs');
+  el.insertAdjacentHTML('beforeend', '<div class="msg a" id="pending"><div class="loading"><div class="spinner"></div> ECHELON denkt…</div></div>');
+  el.scrollTop = el.scrollHeight;
+  const pend = document.getElementById('pending');
+  try {
+    const history = S.chat.slice(-16).map(m => ({ role: m.role, content: m.content }));
+    const reply = await claudeStream(
+      buildSystemPrompt() + '\n\nLIVE-DATEN:\n' + chatContext(),
+      history, MODEL_SMART, 1000,
+      partial => { pend.innerHTML = md(partial); el.scrollTop = el.scrollHeight; }
+    );
+    pend.remove();
+    S.chat.push({ role: 'assistant', content: reply });
+    renderChat();
+    sbUpsert('chat_history', [{ role: 'user', content: text }, { role: 'assistant', content: reply }]);
+  } catch (e) {
+    pend.remove();
+    S.chat.push({ role: 'assistant', content: 'Fehler: ' + e.message + ' — nochmal senden oder API Key in ⚙ prüfen.' });
+    renderChat();
+  } finally { chatBusy = false; }
+}
+
+/* ================================================================
+   WISSEN — Konstitution rendern
+================================================================ */
+function renderWissen() {
+  const kv = (k, v) => `<div class="k-row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  document.getElementById('kAthlete').innerHTML =
+    kv('Profil', `${K.athlete.name}, ${K.athlete.gewicht}kg → Ziel <span class="mono">${K.athlete.zielGewicht}kg</span>, ${K.athlete.ort}`) +
+    kv('FTP', `<span class="mono">${K.athlete.ftp}W</span> — ${K.athlete.ftpRange}`) +
+    kv('HF-Eckwerte', `HFmax <span class="mono">${K.athlete.hfmax}</span> · LTHR <span class="mono">${K.athlete.lthr}</span> · RHR ${K.athlete.rhrNorm}`) +
+    kv('Läufer', `VDOT <span class="mono">${K.athlete.vdot}</span> — Peak ${K.athlete.vdotPeak}`) +
+    kv('Fahrertyp', K.athlete.profil);
+
+  const zoneCells = (zones, valKey, unit) => `<div class="zone-bar">${zones.map(z =>
+    `<div class="zone-cell" style="border-top-color:${z.color}"><div class="zn" style="color:${z.color}">${z.z}</div><div class="zv">${z[valKey]}</div><div class="zu">${unit}</div></div>`).join('')}</div>`;
+  document.getElementById('kZonesRad').innerHTML = zoneCells(K.zonesRad, 'hf', 'bpm') + zoneCells(K.zonesRad, 'watt', 'Watt') +
+    K.zonesRad.map(z => kv(z.z + ' ' + z.name, z.desc)).join('');
+  document.getElementById('kZonesRun').innerHTML = zoneCells(K.zonesRun, 'hf', 'bpm') +
+    K.zonesRun.map(z => kv(z.z + ' ' + z.name, `Pace ~${z.pace}/km`)).join('');
+
+  document.getElementById('kHrv').innerHTML =
+    kv('Alltags-Baseline', `<span class="mono">${K.hrv.alltagBaseline.join('–')}ms</span> · Alarm bei <span class="mono">&lt;${K.hrv.alarmAlltag}ms</span>`) +
+    kv('Biologische Baseline', `<span class="mono">${K.hrv.bioBaseline.join('–')}ms</span> (Urlaub) · Alarm <span class="mono">&lt;${K.hrv.alarmUrlaub}ms</span>`) +
+    kv('Erkenntnis', K.hrv.erkenntnis);
+
+  document.getElementById('kPRs').innerHTML = K.prs.map(p =>
+    kv(p.name, `<span class="mono">${p.wert}</span> · ${p.datum}<br><span style="color:var(--muted);font-size:12px">${p.note}</span>`)).join('');
+
+  document.getElementById('kRules').innerHTML = K.rules.map((r, i) =>
+    `<div class="rule-item"><div class="rn">${String(i + 1).padStart(2, '0')} · ${r.n}</div><div class="rw">${r.w}</div></div>`).join('') +
+    '<div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin:14px 0 4px">Kombi-Regeln · Mehrere Ziele gleichzeitig</div>' +
+    K.kombi.map((r, i) => `<div class="rule-item"><div class="rn">K${i + 1} · ${r.n}</div><div class="rw">${r.w}</div></div>`).join('');
+
+  document.getElementById('kAchilles').innerHTML =
+    kv('Status', K.achilles.status.toUpperCase()) + kv('Historie', K.achilles.historie) +
+    kv('Trigger', K.achilles.trigger) + kv('Protokoll', K.achilles.protokoll) + kv('Muster', K.achilles.muster);
+
+  document.getElementById('kNutrition').innerHTML =
+    kv('Ruhetag', K.nutrition.ruhetag) + kv('Intensitätstag', K.nutrition.intensiv) +
+    kv('Race', K.nutrition.race) + kv('Diät', K.nutrition.diaet);
+}
+
+/* ================================================================
+   SETTINGS + INIT
+================================================================ */
+async function syncNow() {
+  const btn = document.getElementById('syncBtn');
+  btn.style.animation = 'spin .8s linear infinite';
+  toast('Synchronisiere…');
+  try {
+    await Promise.all([loadPlan(), loadAnalyse(), loadGoals()]);
+    await runAutopilot();
+    await genCoaching(true);
+    toast('Aktuell ✓ — neue Einheiten analysiert');
+  } catch (e) { toast('Sync-Fehler: ' + e.message); }
+  btn.style.animation = '';
+}
+function openSettings() {
+  document.getElementById('setKey').value = CLAUDE_KEY;
+  document.querySelectorAll('#segCtx button').forEach(b => { b.classList.toggle('on', b.dataset.v === S.ctx); });
+  document.getElementById('settingsModal').classList.add('show');
+}
+function saveSettings() {
+  CLAUDE_KEY = document.getElementById('setKey').value.trim();
+  localStorage.setItem('coaching_claude_key', CLAUDE_KEY);
+  S.ctx = segVal('segCtx') || 'alltag';
+  localStorage.setItem('ech_ctx', S.ctx);
+  closeModal('settingsModal');
+  toast('Gespeichert ✓');
+}
+function switchTab(name) {
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-' + name));
+  if (name === 'analyse' && !S.workouts.length) loadAnalyse();
+  if (name === 'max' && !S._chatLoaded) { S._chatLoaded = true; loadChat(); }
+}
+async function prefillCheckin() {
+  try {
+    const rows = await sb('daily_checkin', `?checkin_date=eq.${S.today}&limit=1`);
+    if (rows.length) {
+      const c = rows[0];
+      if (c.hrv_ms) document.getElementById('ciHrv').value = c.hrv_ms;
+      if (c.sleep_hours) document.getElementById('ciSleep').value = c.sleep_hours;
+      if (c.resting_hr) document.getElementById('ciRhr').value = c.resting_hr;
+      if (c.achilles) document.querySelectorAll('#segAchilles button').forEach(b => { if (b.dataset.v === c.achilles) segSet(b); });
+    }
+  } catch (e) {}
+}
+function init() {
+  document.getElementById('ciDate').textContent = new Date(S.today).toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' });
+  renderWissen();
+  prefillCheckin();
+  Promise.all([loadGoals(), loadPlan(), loadAnalyse(), renderStrengthBlocks(), loadChat().then(() => { S._chatLoaded = true; })])
+    .then(runAutopilot)
+    .catch(e => console.warn(e));
+  if (!CLAUDE_KEY) setTimeout(openSettings, 800);
+}
+init();
+</script>
+</body>
+</html>
